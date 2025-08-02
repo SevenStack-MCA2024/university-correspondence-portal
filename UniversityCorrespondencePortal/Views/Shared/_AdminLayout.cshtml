@@ -4,37 +4,70 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>@ViewBag.Title</title>
+    <meta charset="utf-8" />
+    <title>@ViewBag.Title - Admin Panel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .layout-wrapper {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .layout-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .layout-footer {
+            background-color: #343a40;
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+        }
+    </style>
 </head>
-<body class="d-flex flex-column min-vh-100">
+<body>
+    <div class="layout-wrapper">
+        <!-- Header / Navbar -->
+        <header class="d-flex justify-content-between align-items-center p-3 bg-primary text-white">
+            <div>
+                <a href="@Url.Action("Dashboard", "Admin")" class="btn btn-light">Admin Panel</a>
+            </div>
+            <div>
+                <a href="@Url.Action("AddDepartment", "Admin")" class="btn btn-outline-light me-2">Add Department</a>
+                <a href="@Url.Action("AddStaff", "Admin")" class="btn btn-outline-light me-2">Add Staff</a>
+                <a href="@Url.Action("AddClerk", "Admin")" class="btn btn-outline-light me-2">Add Clerk</a>
+                <a href="@Url.Action("Report", "Admin")" class="btn btn-outline-light me-2">Report</a>
+                <a href="@Url.Action("Profile", "Admin")" class="btn btn-outline-light me-2">Admin Profile</a>
+                <a href="@Url.Action("Logout", "Admin")" class="btn btn-outline-light">Logout</a>
+            </div>
+        </header>
 
-    <!-- Header -->
-    <header class="d-flex justify-content-between align-items-center p-3 bg-primary text-white">
-        <div>
-            <a href="@Url.Action("Dashboard", "Admin")" class="btn btn-light">Admin Panel</a>
-        </div>
-        <div>
-            <a href="@Url.Action("AddStaff", "Admin")" class="btn btn-outline-light me-2">Add Staff</a>
-            <a href="@Url.Action("AddDepartment", "Admin")" class="btn btn-outline-light me-2">Add Department</a>
-            <a href="@Url.Action("AddClerk", "Admin")" class="btn btn-outline-light me-2">Add Clerk</a>
-            <a href="@Url.Action("Report", "Admin")" class="btn btn-outline-light me-2">Report</a>
-            <a href="@Url.Action("Profile", "Admin")" class="btn btn-outline-light me-2">Admin Profile</a>
-            <a href="@Url.Action("Logout", "Admin")" class="btn btn-outline-light">Logout</a>
-        </div>
-    </header>
+        <!-- Page Content -->
+        <main class="layout-content container-fluid">
+            @RenderBody()
+        </main>
 
-    <!-- Main Content -->
-    <main class="flex-fill container my-4">
-        @RenderBody()
-    </main>
-
-    <!-- Footer -->
-    <footer class="bg-dark text-white text-center py-3 mt-auto">
-        <p>© 2025 University Correspondence Portal | Admin Dashboard</p>
-    </footer>
+        <!-- Footer -->
+        <footer class="layout-footer">
+            © 2025 University Correspondence Portal | Admin Dashboard
+        </footer>
+    </div>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    @RenderSection("Scripts", required: false)
+
+
 </body>
 </html>

@@ -1,6 +1,120 @@
-﻿@{
-    ViewBag.Title = "Add Staff";
+﻿@model List<UniversityCorrespondencePortal.Models.Department>
+
+@{
+    ViewBag.Title = "Add Department";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    string search = ViewBag.Search as string ?? "";
+    string editId = TempData["EditID"] as string ?? "";
 }
-<h2>Add Staff Page</h2>
-<p>Form to add staff will go here.</p>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success">@TempData["Message"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<div class="container-fluid mt-3">
+    <h2 class="mb-3">Department Management</h2>
+
+    <!-- Search and Add Department Button -->
+    <div class="row mb-3">
+        <div class="col-md-9">
+            <form method="get" class="d-flex flex-wrap gap-2">
+                <input type="text" name="search" value="@search" placeholder="Search by name or ID" class="form-control" style="min-width: 220px;" />
+                <button type="submit" class="btn btn-primary">Search</button>
+            </form>
+        </div>
+        <div class="col-md-3 text-md-end mt-2 mt-md-0">
+            <button type="button" class="btn btn-success w-100 w-md-auto" data-bs-toggle="modal" data-bs-target="#addDepartmentModal">
+                + Add Department
+            </button>
+        </div>
+    </div>
+
+    <!-- Scrollable Table -->
+    <div style="max-height: 60vh; overflow-y: auto;">
+        <table class="table table-bordered table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th style="width: 20%;">Department ID</th>
+                    <th style="width: 60%;">Department Name</th>
+                    <th style="width: 20%;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var dept in Model)
+                    {
+                        if (dept.DepartmentID == editId)
+                        {
+                            <!-- Inline Edit Row -->
+                            <tr>
+                                <form method="post" action="@Url.Action("UpdateDepartment", "Admin")">
+                                <td>
+                                    <input type="hidden" name="DepartmentID" value="@dept.DepartmentID" />
+                                    @dept.DepartmentID
+                                </td>
+                                <td>
+                                    <input type="text" name="DepartmentName" value="@dept.DepartmentName" class="form-control" required />
+                                </td>
+                                <td class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-sm btn-warning">Save</button>
+                                    <a href="@Url.Action("AddDepartment", "Admin")" class="btn btn-sm btn-secondary">Cancel</a>
+                                </td>
+                                </form>
+                            </tr>
+                        }
+                        else
+                        {
+                            <!-- Normal View Row -->
+                            <tr>
+                                <td>@dept.DepartmentID</td>
+                                <td>@dept.DepartmentName</td>
+                                <td>
+                                    <a href="@Url.Action("AddDepartment", "Admin", new { editId = dept.DepartmentID })" class="btn btn-sm btn-warning">Edit</a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="3" class="text-center">No departments found.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <!-- Modal -->
+        <div class="modal fade" id="addDepartmentModal" tabindex="-1" aria-labelledby="addDepartmentLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form method="post" action="@Url.Action("AddDepartmentModal", "Admin")">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="addDepartmentLabel">Add New Department</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group mb-3">
+                                <label for="DepartmentID">Department ID</label>
+                                <input type="text" class="form-control" id="DepartmentID" name="DepartmentID" required maxlength="10" />
+                            </div>
+                            <div class="form-group mb-3">
+                                <label for="DepartmentName">Department Name</label>
+                                <input type="text" class="form-control" id="DepartmentName" name="DepartmentName" required maxlength="100" />
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Add Department</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

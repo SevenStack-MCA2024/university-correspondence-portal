@@ -1,6 +1,156 @@
-﻿@{
+﻿@model List<UniversityCorrespondencePortal.Models.ViewModels.StaffViewModel>
+@{
     ViewBag.Title = "Add Staff";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var editId = TempData["EditID"] != null ? Convert.ToInt32(TempData["EditID"]) : 0;
 }
-<h2>Add Staff Page</h2>
-<p>Form to add staff will go here.</p>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success">@TempData["Message"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<div class="container-fluid mt-3">
+    <h2 class="mb-3">Staff Management</h2>
+
+    <!-- Search + Add New Button -->
+    <div class="row mb-3">
+        <div class="col-md-9">
+            <form method="get" class="d-flex flex-wrap gap-2">
+                <input type="text" name="searchTerm" placeholder="Search by name, ID, email" class="form-control" style="min-width: 200px;" />
+                <select name="designationFilter" class="form-control" style="min-width: 160px;">
+                    <option value="">-- Designation --</option>
+                    @foreach (var item in ViewBag.DesignationList as List<string>)
+                    {
+                        <option value="@item">@item</option>
+                    }
+                </select>
+                <select name="departmentFilter" class="form-control" style="min-width: 160px;">
+                    <option value="">-- Department --</option>
+                    @foreach (var item in ViewBag.DepartmentList as List<UniversityCorrespondencePortal.Models.Department>)
+                    {
+                        <option value="@item.DepartmentName">@item.DepartmentName</option>
+                    }
+                </select>
+                <button type="submit" class="btn btn-primary">Search</button>
+            </form>
+        </div>
+        <div class="col-md-3 text-md-end mt-2 mt-md-0">
+            <button class="btn btn-success w-100 w-md-auto" data-bs-toggle="modal" data-bs-target="#addStaffModal">+ Add New Staff</button>
+        </div>
+    </div>
+
+    <!-- Scrollable Table -->
+    <div style="max-height: 60vh; overflow-y: auto;">
+        <table class="table table-striped table-bordered align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th style="width: 8%;">Staff ID</th>
+                    <th style="width: 15%;">Name</th>
+                    <th style="width: 20%;">Email</th>
+                    <th style="width: 12%;">Phone</th>
+                    <th style="width: 15%;">Designation</th>
+                    <th style="width: 20%;">Departments</th>
+                    <th style="width: 10%;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var staff in Model)
+                {
+                    if (staff.StaffID == editId)
+                    {
+                        <tr>
+                            <form method="post" action="@Url.Action("UpdateStaff", "Admin")">
+                            <td>
+                                <input type="hidden" name="StaffID" value="@staff.StaffID" />
+                                @staff.StaffID
+                            </td>
+                            <td><input type="text" name="Name" value="@staff.Name" class="form-control form-control-sm" /></td>
+                            <td><input type="email" name="Email" value="@staff.Email" class="form-control form-control-sm" /></td>
+                            <td><input type="text" name="Phone" value="@staff.Phone" class="form-control form-control-sm" /></td>
+                            <td><input type="text" name="Designation" value="@staff.Designation" class="form-control form-control-sm" /></td>
+                            <td>@staff.Departments</td>
+                            <td class="text-nowrap">
+                                <button type="submit" class="btn btn-sm btn-warning me-1">Save</button>
+                                <a href="@Url.Action("AddStaff", "Admin")" class="btn btn-sm btn-secondary">Cancel</a>
+                            </td>
+                            </form>
+                        </tr>
+                    }
+                    else
+                    {
+                        <tr>
+                            <td>@staff.StaffID</td>
+                            <td>@staff.Name</td>
+                            <td>@staff.Email</td>
+                            <td>@staff.Phone</td>
+                            <td>@staff.Designation</td>
+                            <td>@staff.Departments</td>
+                            <td class="text-nowrap">
+                                <a href="@Url.Action("AddStaff", "Admin", new { editId = staff.StaffID })" class="btn btn-sm btn-warning">Edit</a>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Staff Modal -->
+<div class="modal fade" id="addStaffModal" tabindex="-1" aria-labelledby="addStaffModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post" action="@Url.Action("CreateStaff", "Admin")">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="addStaffModalLabel">Add New Staff</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body row g-3">
+                    <div class="col-md-6">
+                        <label>Staff ID</label>
+                        <input type="number" name="StaffID" required class="form-control" />
+                    </div>
+                    <div class="col-md-6">
+                        <label>Name</label>
+                        <input type="text" name="Name" required class="form-control" />
+                    </div>
+                    <div class="col-md-6">
+                        <label>Email</label>
+                        <input type="email" name="Email" required class="form-control" />
+                    </div>
+                    <div class="col-md-6">
+                        <label>Phone</label>
+                        <input type="text" name="Phone" required class="form-control" />
+                    </div>
+                    <div class="col-md-6">
+                        <label>Designation</label>
+                        <input type="text" name="Designation" required class="form-control" />
+                    </div>
+                    <div class="col-md-6">
+                        <label>Department</label>
+                        <select name="DepartmentID" required class="form-control">
+                            <option value="">-- Select Department --</option>
+                            @foreach (var dept in ViewBag.DepartmentList as List<UniversityCorrespondencePortal.Models.Department>)
+                            {
+                                <option value="@dept.DepartmentID">@dept.DepartmentName</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Add Staff</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+}
