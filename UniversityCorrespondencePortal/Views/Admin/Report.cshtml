@@ -1,0 +1,12 @@
+﻿@{
+    ViewBag.Title = "Admin Reports";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h2>Admin Reports</h2>
+
+<div class="alert alert-info">
+    @ViewBag.ReportMessage
+</div>
+
+<a href="@Url.Action("Dashboard", "Admin")" class="btn btn-primary">Back to Dashboard</a>
