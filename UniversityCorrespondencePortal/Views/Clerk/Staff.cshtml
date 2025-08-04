@@ -29,13 +29,11 @@
                         <option value="@item">@item</option>
                     }
                 </select>
-                @*<select name="departmentFilter" class="form-control" style="min-width: 160px;">
-                    <option value="">-- Department --</option>
-                    @foreach (var item in ViewBag.DepartmentList as List<UniversityCorrespondencePortal.Models.Department>)
-                    {
-                        <option value="@item.DepartmentName">@item.DepartmentName</option>
-                    }
-                </select>*@
+                <select name="statusFilter" class="form-control" style="min-width: 160px;">
+                    <option value="">-- Status --</option>
+                    <option value="true">Active</option>
+                    <option value="false">Inactive</option>
+                </select>
                 <button type="submit" class="btn btn-primary">Search</button>
             </form>
         </div>
@@ -55,6 +53,7 @@
                     <th>Phone</th>
                     <th>Designation</th>
                     <th>Departments</th>
+                    <th>Status</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -77,6 +76,12 @@
                                 <input type="hidden" name="DepartmentName" value="@staff.Departments" />
                                 <span>@staff.Departments</span>
                             </td>
+                            <td>
+                                <select name="IsActive" class="form-control form-control-sm">
+                                    <option value="true" selected="@(staff.IsActive)">Active</option>
+                                    <option value="false" selected="@(!staff.IsActive)">Inactive</option>
+                                </select>
+                            </td>
                             <td class="text-nowrap">
                                 <button type="submit" class="btn btn-sm btn-warning me-1">Save</button>
                                 <a href="@Url.Action("Staff", "Clerk")" class="btn btn-sm btn-secondary">Cancel</a>
@@ -93,6 +98,7 @@
                             <td>@staff.Phone</td>
                             <td>@staff.Designation</td>
                             <td>@staff.Departments</td>
+                            <td>@(staff.IsActive ? "Active" : "Inactive")</td>
                             <td class="text-nowrap">
                                 <a href="@Url.Action("Staff", "Clerk", new { editId = staff.StaffID })" class="btn btn-sm btn-warning">Edit</a>
                             </td>
@@ -138,6 +144,13 @@
                         <label>Department</label>
                         <input type="hidden" name="DepartmentID" value="@ViewBag.ClerkDepartmentID" />
                         <input type="text" class="form-control" value="@ViewBag.ClerkDepartmentName" readonly />
+                    </div>
+                    <div class="col-md-6">
+                        <label>Status</label>
+                        <select name="IsActive" class="form-control">
+                            <option value="true" selected>Active</option>
+                            <option value="false">Inactive</option>
+                        </select>
                     </div>
                 </div>
                 <div class="modal-footer">
