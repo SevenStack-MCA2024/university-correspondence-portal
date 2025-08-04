@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using static System.Web.Razor.Parser.SyntaxConstants;
 
 namespace UniversityCorrespondencePortal.Models
 {
@@ -17,7 +17,11 @@ namespace UniversityCorrespondencePortal.Models
         [MaxLength(50)]
         public string OutwardNumber { get; set; }
 
-        public DateTime? DateTimeReceived { get; set; }
+        [DataType(DataType.Date)]
+        public DateTime? DateReceived { get; set; }
+
+        [DataType(DataType.Time)]
+        public TimeSpan? TimeReceived { get; set; }
 
         [MaxLength(50)]
         public string DeliveryMode { get; set; }
@@ -37,20 +41,17 @@ namespace UniversityCorrespondencePortal.Models
         [MaxLength(255)]
         public string Remarks { get; set; }
 
-        [MaxLength(50)]
-        public string Status { get; set; }
-
         [MaxLength(20)]
         public string Priority { get; set; }
 
         [MaxLength(100)]
         public string ReceiverDepartment { get; set; }
 
-        public int? StaffID { get; set; }
+        // Remove StaffID
+        // public int? StaffID { get; set; }
+        // public virtual Staff Staff { get; set; }
 
-        [ForeignKey("StaffID")]
-        public virtual Staff Staff { get; set; }
-
-        public virtual VerificationCode VerificationCode { get; set; }
+        // Many-to-many navigation
+        public virtual ICollection<LetterStaff> LetterStaffs { get; set; }
     }
 }

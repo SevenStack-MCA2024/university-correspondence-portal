@@ -1,0 +1,165 @@
+﻿<!--@model List<UniversityCorrespondencePortal.Models.InwardLetter>
+@{
+    ViewBag.Title = "Outward Letters";
+    Layout = "~/Views/Shared/_ClerkLayout.cshtml";
+    var editId = ViewBag.EditID != null ? Convert.ToInt32(ViewBag.EditID) : 0;
+}
+
+<h2 class="mb-3">Inward Letters</h2>-->
+
+<!-- Filter and Add -->
+<!--<form method="get" class="row mb-3 g-2">
+    <div class="col-md-3">
+        <input type="text" name="searchTerm" class="form-control" placeholder="Search by sender, subject, ID" />
+    </div>
+    <div class="col-md-2">
+        <select name="deliveryModeFilter" class="form-control">
+            <option value="">-- Delivery Mode --</option>
+            @foreach (var mode in ViewBag.DeliveryModes as List<string>)
+            {
+                <option value="@mode">@mode</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-2">
+        <select name="statusFilter" class="form-control">
+            <option value="">-- Status --</option>
+            @foreach (var status in ViewBag.StatusList as List<string>)
+            {
+                <option value="@status">@status</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100">Search</button>
+    </div>
+    <div class="col-md-3 text-end">
+        <button class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#addLetterModal">+ Add Inward Letter</button>
+    </div>
+</form>-->
+
+<!-- Table -->
+<!--<div style="max-height: 60vh; overflow-y: auto;">
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Inward No</th>
+                <th>Outward No</th>
+                <th>Date Received</th>
+                <th>Delivery Mode</th>
+                <th>Sender Name</th>
+                <th>Reference ID</th>
+                <th>Subject</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Receiver Dept</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var letter in Model)
+            {
+                if (letter.LetterID == editId)
+                {
+                    <form method="post" action="@Url.Action("UpdateLetter", "Clerk")">
+                        <input type="hidden" name="LetterID" value="@letter.LetterID" />
+                    <tr>
+                        <td>@letter.InwardNumber</td>
+                        <td>@letter.OutwardNumber</td>
+                        <td>@letter.DateTimeReceived?.ToString("yyyy-MM-dd")</td>
+                        <td><input name="DeliveryMode" value="@letter.DeliveryMode" class="form-control form-control-sm" /></td>
+                        <td><input name="SenderName" value="@letter.SenderName" class="form-control form-control-sm" /></td>
+                        <td>@letter.ReferenceID</td>
+                        <td><input name="Subject" value="@letter.Subject" class="form-control form-control-sm" /></td>
+                        <td><input name="Status" value="@letter.Status" class="form-control form-control-sm" /></td>
+                        <td><input name="Priority" value="@letter.Priority" class="form-control form-control-sm" /></td>
+                        <td>@letter.ReceiverDepartment</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning me-1" type="submit">Save</button>
+                            <a class="btn btn-sm btn-secondary" href="@Url.Action("Letter", "Clerk")">Cancel</a>
+                        </td>
+                    </tr>
+                    </form>
+                }
+                else
+                {
+                    <tr>
+                        <td>@letter.InwardNumber</td>
+                        <td>@letter.OutwardNumber</td>
+                        <td>@letter.DateTimeReceived?.ToString("yyyy-MM-dd")</td>
+                        <td>@letter.DeliveryMode</td>
+                        <td>@letter.SenderName</td>
+                        <td>@letter.ReferenceID</td>
+                        <td>@letter.Subject</td>
+                        <td>@letter.Status</td>
+                        <td>@letter.Priority</td>
+                        <td>@letter.ReceiverDepartment</td>
+                        <td>
+                            <a href="@Url.Action("Letter", "Clerk", new { editId = letter.LetterID })" class="btn btn-sm btn-warning">Edit</a>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>-->
+
+<!-- Add Letter Modal -->
+<!--<div class="modal fade" id="addLetterModal" tabindex="-1" aria-labelledby="addLetterModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post" action="@Url.Action("CreateLetter", "Clerk")">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="addLetterModalLabel">Add Inward Letter</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body row g-3">
+                    <div class="col-md-6">
+                        <label>Inward Number</label>
+                        <input type="text" name="InwardNumber" required class="form-control" />
+                    </div>
+                    <div class="col-md-6">
+                        <label>Outward Number</label>
+                        <input type="text" name="OutwardNumber" class="form-control" />
+                    </div>
+                    <div class="col-md-6">
+                        <label>Date Received</label>
+                        <input type="date" name="DateTimeReceived" class="form-control" />
+                    </div>
+                    <div class="col-md-6">
+                        <label>Delivery Mode</label>
+                        <input type="text" name="DeliveryMode" class="form-control" />
+                    </div>
+                    <div class="col-md-6">
+                        <label>Sender Name</label>
+                        <input type="text" name="SenderName" class="form-control" />
+                    </div>
+                    <div class="col-md-6">
+                        <label>Sender Dept</label>
+                        <input type="text" name="SenderDepartment" class="form-control" />
+                    </div>
+                    <div class="col-md-6">
+                        <label>Subject</label>
+                        <input type="text" name="Subject" class="form-control" />
+                    </div>
+                    <div class="col-md-6">
+                        <label>Status</label>
+                        <input type="text" name="Status" class="form-control" />
+                    </div>
+                    <div class="col-md-6">
+                        <label>Priority</label>
+                        <input type="text" name="Priority" class="form-control" />
+                    </div>
+                    <div class="col-md-6">
+                        <label>Receiver Department</label>
+                        <input type="text" name="ReceiverDepartment" class="form-control" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Add Letter</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>-->

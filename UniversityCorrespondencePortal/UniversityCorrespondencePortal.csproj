@@ -134,13 +134,9 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202508020516578_InitialCreate.cs" />
-    <Compile Include="Migrations\202508020516578_InitialCreate.Designer.cs">
-      <DependentUpon>202508020516578_InitialCreate.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202508020523054_AddAdminTable.cs" />
-    <Compile Include="Migrations\202508020523054_AddAdminTable.Designer.cs">
-      <DependentUpon>202508020523054_AddAdminTable.cs</DependentUpon>
+    <Compile Include="Migrations\202508041140071_InitialCreate.cs" />
+    <Compile Include="Migrations\202508041140071_InitialCreate.Designer.cs">
+      <DependentUpon>202508041140071_InitialCreate.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Admin.cs" />
@@ -148,11 +144,12 @@
     <Compile Include="Models\Department.cs" />
     <Compile Include="Models\InwardLetter.cs" />
     <Compile Include="Models\LetterSerialTracker.cs" />
+    <Compile Include="Models\LetterStaff.cs" />
     <Compile Include="Models\OutwardLetter.cs" />
     <Compile Include="Models\Staff.cs" />
     <Compile Include="Models\StaffDepartment.cs" />
     <Compile Include="Models\UcpDbContext.cs" />
-    <Compile Include="Models\VerificationCode.cs" />
+    <Compile Include="Models\ViewModels\InwardLetterViewModel.cs" />
     <Compile Include="Models\ViewModels\ClerkViewModel.cs" />
     <Compile Include="Models\ViewModels\StaffViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -219,6 +216,12 @@
     <Content Include="Views\Admin\AddStaff.cshtml" />
     <Content Include="Views\Admin\Profile.cshtml" />
     <Content Include="Views\Admin\Report.cshtml" />
+    <Content Include="Views\Shared\_ClerkLayout.cshtml" />
+    <Content Include="Views\Clerk\InwardLetter.cshtml" />
+    <Content Include="Views\Clerk\Staff.cshtml" />
+    <Content Include="Views\Clerk\Report.cshtml" />
+    <Content Include="Views\Clerk\Profile.cshtml" />
+    <Content Include="Views\Clerk\OutwardLetter.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap.rtl.min.css.map" />
@@ -248,14 +251,10 @@
     <Content Include="Scripts\jquery-3.7.0.min.map" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202508020516578_InitialCreate.resx">
-      <DependentUpon>202508020516578_InitialCreate.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202508020523054_AddAdminTable.resx">
-      <DependentUpon>202508020523054_AddAdminTable.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202508041140071_InitialCreate.resx">
+      <DependentUpon>202508041140071_InitialCreate.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup />
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
