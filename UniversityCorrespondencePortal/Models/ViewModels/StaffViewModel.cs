@@ -13,5 +13,6 @@ namespace UniversityCorrespondencePortal.Models.ViewModels
         public string Phone { get; set; }
         public string Designation { get; set; }
         public string Departments { get; set; }
+        public bool IsActive { get; set; } // Add this property
     }
 }

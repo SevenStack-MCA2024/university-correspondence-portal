@@ -134,9 +134,9 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202508041140071_InitialCreate.cs" />
-    <Compile Include="Migrations\202508041140071_InitialCreate.Designer.cs">
-      <DependentUpon>202508041140071_InitialCreate.cs</DependentUpon>
+    <Compile Include="Migrations\202508041810197_create-table.cs" />
+    <Compile Include="Migrations\202508041810197_create-table.Designer.cs">
+      <DependentUpon>202508041810197_create-table.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Admin.cs" />
@@ -217,11 +217,9 @@
     <Content Include="Views\Admin\Profile.cshtml" />
     <Content Include="Views\Admin\Report.cshtml" />
     <Content Include="Views\Shared\_ClerkLayout.cshtml" />
-    <Content Include="Views\Clerk\InwardLetter.cshtml" />
     <Content Include="Views\Clerk\Staff.cshtml" />
     <Content Include="Views\Clerk\Report.cshtml" />
     <Content Include="Views\Clerk\Profile.cshtml" />
-    <Content Include="Views\Clerk\OutwardLetter.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap.rtl.min.css.map" />
@@ -251,8 +249,8 @@
     <Content Include="Scripts\jquery-3.7.0.min.map" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202508041140071_InitialCreate.resx">
-      <DependentUpon>202508041140071_InitialCreate.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202508041810197_create-table.resx">
+      <DependentUpon>202508041810197_create-table.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
