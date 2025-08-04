@@ -1,7 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using static System.Web.Razor.Parser.SyntaxConstants;
 
 namespace UniversityCorrespondencePortal.Models
 {
@@ -10,7 +9,6 @@ namespace UniversityCorrespondencePortal.Models
         [Key]
         public int OutwardLetterID { get; set; }
 
-     
         [Required]
         [MaxLength(50)]
         public string OutwardNumber { get; set; }
@@ -18,17 +16,14 @@ namespace UniversityCorrespondencePortal.Models
         [MaxLength(50)]
         public string LetterNumber { get; set; }
 
-        [Required]
-        public DateTime DateTimeSent { get; set; }
+        [DataType(DataType.Date)]
+        public DateTime? DateReceived { get; set; }
+
+        [DataType(DataType.Time)]
+        public TimeSpan? TimeReceived { get; set; }
 
         [MaxLength(50)]
         public string DeliveryMode { get; set; }
-
-        [MaxLength(100)]
-        public string ReceiverDepartment { get; set; }
-
-        [MaxLength(100)]
-        public string ReceiverName { get; set; }
 
         [MaxLength(100)]
         public string ReferenceID { get; set; }
@@ -39,24 +34,18 @@ namespace UniversityCorrespondencePortal.Models
         [MaxLength(255)]
         public string Remarks { get; set; }
 
-        [MaxLength(50)]
-        public string Status { get; set; }
-
         [MaxLength(20)]
         public string Priority { get; set; }
 
         [MaxLength(100)]
         public string SenderDepartment { get; set; }
 
-        [MaxLength(10)]
-        public string ClerkID { get; set; }
+        // ✅ Multiple receiver departments (comma-separated or semicolon-separated)
+        [MaxLength(1000)]
+        public string ReceiverDepartments { get; set; }
 
-        public int? StaffID { get; set; }
-
-        [ForeignKey("ClerkID")]
-        public virtual Clerk Clerk { get; set; }
-
-        [ForeignKey("StaffID")]
-        public virtual Staff Staff { get; set; }
+        // ✅ Multiple receiver names (comma-separated or semicolon-separated)
+        [MaxLength(1000)]
+        public string ReceiverNames { get; set; }
     }
 }

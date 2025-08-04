@@ -5,7 +5,7 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>@ViewBag.Title - Admin Panel</title>
+    <title>@ViewBag.Title - Clerk Panel</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
 
@@ -39,17 +39,17 @@
 <body>
     <div class="layout-wrapper">
         <!-- Header / Navbar -->
-        <header class="d-flex justify-content-between align-items-center p-3 bg-primary text-white">
-            <div>
-                <a href="@Url.Action("Report", "Admin")" class="btn btn-light">Admin Panel</a>
+        <header class="d-flex justify-content-between align-items-center p-3 bg-success text-white">
+            <div class="fw-bold">
+                Welcome Clerk
             </div>
             <div>
-                <a href="@Url.Action("AddDepartment", "Admin")" class="btn btn-outline-light me-2">Add Department</a>
-                <a href="@Url.Action("AddStaff", "Admin")" class="btn btn-outline-light me-2">Add Staff</a>
-                <a href="@Url.Action("AddClerk", "Admin")" class="btn btn-outline-light me-2">Add Clerk</a>
-                <a href="@Url.Action("Report", "Admin")" class="btn btn-outline-light me-2">Report</a>
-                <a href="@Url.Action("Profile", "Admin")" class="btn btn-outline-light me-2">Admin Profile</a>
-                <a href="@Url.Action("Logout", "Admin")" class="btn btn-outline-light">Logout</a>
+                <a href="@Url.Action("InwardLetter", "Clerk")" class="btn btn-outline-light me-2">InwardLetters</a>
+                <a href="@Url.Action("OutwardLetter", "Clerk")" class="btn btn-outline-light me-2">OutwardLetters</a>
+                <a href="@Url.Action("Staff", "Clerk")" class="btn btn-outline-light me-2">Staff</a>
+                <a href="@Url.Action("Report", "Clerk")" class="btn btn-outline-light me-2">Report</a>
+                <a href="@Url.Action("Profile", "Clerk")" class="btn btn-outline-light me-2">Profile</a>
+                <a href="@Url.Action("Logout", "Clerk")" class="btn btn-outline-light">Logout</a>
             </div>
         </header>
 
@@ -60,14 +60,12 @@
 
         <!-- Footer -->
         <footer class="layout-footer">
-            © 2025 University Correspondence Portal | Admin Dashboard
+            © 2025 University Correspondence Portal | Clerk Dashboard
         </footer>
     </div>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     @RenderSection("Scripts", required: false)
-
-
 </body>
 </html>

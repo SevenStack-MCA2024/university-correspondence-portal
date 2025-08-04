@@ -267,11 +267,11 @@ namespace UniversityCorrespondencePortal.Controllers
         }
 
         [HttpPost]
-        public ActionResult AddDepartmentModal(string DepartmentID, string DepartmentName)
+        public ActionResult AddDepartmentModal(string DepartmentID, string DepartmentName, string DepartmentCode)
         {
             if (string.IsNullOrWhiteSpace(DepartmentID) || string.IsNullOrWhiteSpace(DepartmentName))
             {
-                TempData["Error"] = "Both ID and Name are required.";
+                TempData["Error"] = "Department ID and Name are required.";
                 return RedirectToAction("AddDepartment");
             }
 
@@ -284,7 +284,8 @@ namespace UniversityCorrespondencePortal.Controllers
             db.Departments.Add(new Department
             {
                 DepartmentID = DepartmentID,
-                DepartmentName = DepartmentName
+                DepartmentName = DepartmentName,
+                DepartmentCode = DepartmentCode
             });
 
             db.SaveChanges();
@@ -292,13 +293,13 @@ namespace UniversityCorrespondencePortal.Controllers
             return RedirectToAction("AddDepartment");
         }
 
+
         [HttpPost]
-        public ActionResult UpdateDepartment(string DepartmentID, string DepartmentName)
+        public ActionResult UpdateDepartment(string DepartmentID, string DepartmentName, string DepartmentCode)
         {
             try
             {
                 var department = db.Departments.FirstOrDefault(d => d.DepartmentID == DepartmentID);
-
                 if (department == null)
                 {
                     TempData["Error"] = "Department not found.";
@@ -306,7 +307,9 @@ namespace UniversityCorrespondencePortal.Controllers
                 }
 
                 department.DepartmentName = DepartmentName;
+                department.DepartmentCode = DepartmentCode;
                 db.SaveChanges();
+
                 TempData["Message"] = "Department updated successfully.";
             }
             catch (Exception ex)
@@ -316,5 +319,6 @@ namespace UniversityCorrespondencePortal.Controllers
 
             return RedirectToAction("AddDepartment");
         }
+
     }
 }
