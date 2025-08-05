@@ -1,0 +1,474 @@
+﻿@model List<UniversityCorrespondencePortal.Models.ViewModels.InwardLetterViewModel>
+@using UniversityCorrespondencePortal.Models
+
+@{
+    ViewBag.Title = "Inward Letters";
+    Layout = "~/Views/Shared/_ClerkLayout.cshtml";
+    var departments = ViewBag.Departments as List<Department>;
+    var allStaff = ViewBag.AllStaff as List<Staff>;
+}
+
+
+<div class="container-fluid mt-3">
+    <h2 class="mb-4">Inward Letter Management</h2>
+
+    <!-- Filters -->
+    <div class="row g-3 mb-3">
+        <div class="col-md-3">
+            <label>Sender Department</label>
+            <select id="filterSenderDept" class="form-control">
+                <option value="">All</option>
+                @foreach (var dept in departments)
+                {
+                    <option value="@dept.DepartmentName">@dept.DepartmentName</option>
+                }
+                <option value="Other">Other</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label>From Date</label>
+            <input type="date" id="filterFromDate" class="form-control" />
+        </div>
+        <div class="col-md-2">
+            <label>To Date</label>
+            <input type="date" id="filterToDate" class="form-control" />
+        </div>
+        <div class="col-md-2">
+            <label>Priority</label>
+            <select id="filterPriority" class="form-control">
+                <option value="">All</option>
+                <option>High</option>
+                <option>Medium</option>
+                <option>Low</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label>Staff Name</label>
+            <input type="text" id="filterStaff" class="form-control" placeholder="Staff name" />
+        </div>
+        <div class="col-md-1 d-flex align-items-end gap-1">
+            <button class="btn btn-primary w-100" onclick="applyFilters()">Apply</button>
+            <button class="btn btn-secondary w-100" onclick="clearFilters()">Clear</button>
+        </div>
+    </div>
+
+    <!-- Add Button -->
+    <div class="text-end mb-3">
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addModal">
+            <i class="fas fa-plus"></i> Add Inward Letter
+        </button>
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive">
+        <table id="letterTable" class="table table-bordered table-striped align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Inward #</th>
+                    <th>Outward #</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Sender Dept</th>
+                    <th>Subject</th>
+                    <th>Staff</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var l in Model)
+                {
+                    var jsonData = Json.Encode(new
+                    {
+                        l.LetterID,
+                        l.InwardNumber,
+                        l.OutwardNumber,
+                        DateReceived = l.DateReceived?.ToString("yyyy-MM-dd"),
+                        TimeReceived = l.TimeReceived?.ToString(@"hh\:mm"),
+                        l.SenderDepartment,
+                        l.SenderName,
+                        l.ReferenceID,
+                        l.Subject,
+                        l.Remarks,
+                        l.Priority,
+                        l.ReceiverDepartment,
+                        l.StaffNames,
+                        SelectedStaffIDs = l.SelectedStaffIDs
+                    });
+
+                    <tr data-sender="@l.SenderDepartment"
+                        data-date="@(l.DateReceived?.ToString("yyyy-MM-dd"))"
+                        data-priority="@l.Priority"
+                        data-staff="@l.StaffNames?.ToLower()">
+                        <td>@l.InwardNumber</td>
+                        <td>@l.OutwardNumber</td>
+                        <td>@(l.DateReceived?.ToString("dd-MM-yyyy"))</td>
+                        <td>@(l.TimeReceived?.ToString(@"hh\:mm"))</td>
+                        <td>@l.SenderDepartment</td>
+                        <td>@l.Subject</td>
+                        <td>@l.StaffNames</td>
+                        <td>
+                            <button class="btn btn-sm btn-info view-btn" data-letter='@Html.Raw(jsonData)'>View</button>
+                            <button class="btn btn-sm btn-warning edit-btn" data-letter='@Html.Raw(jsonData)'>Edit</button>
+                        </td>
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+    </div>
+</div>
+
+<!-- Add Modal -->
+<!-- Add Modal -->
+<div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post" action="@Url.Action("CreateInwardLetter", "Clerk")">
+
+                @Html.AntiForgeryToken()
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="addModalLabel">Add Inward Letter</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body row g-3">
+                    <div class="col-md-6">
+                        <label>Outward Number</label>
+                        <input type="text" name="OutwardNumber" class="form-control" />
+                    </div>
+                    <div class="col-md-6">
+                        <label>Sender Department</label>
+                        <select name="SenderDepartment" id="addSenderDept" class="form-control">
+                            @foreach (var dept in departments)
+                            {
+                                <option value="@dept.DepartmentName">@dept.DepartmentName</option>
+                            }
+                            <option value="Other">Other</option>
+                        </select>
+                        <input type="text" class="form-control mt-2 d-none" id="addOtherSenderDept" name="SenderDepartment" placeholder="Enter department name" />
+                    </div>
+                    <div class="col-md-6">
+                        <label>Sender Name</label>
+                        <input type="text" name="SenderName" class="form-control" />
+                    </div>
+                    <div class="col-md-6">
+                        <label>Reference Letter ID</label>
+                        <input type="text" name="ReferenceID" class="form-control" />
+                    </div>
+                    <div class="col-md-6">
+                        <label>Subject</label>
+                        <input type="text" name="Subject" class="form-control" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label>Remarks</label>
+                        <input type="text" name="Remarks" class="form-control" />
+                    </div>
+                    <div class="col-md-6">
+                        <label>Priority</label>
+                        <select name="Priority" class="form-control">
+                            <option>High</option>
+                            <option>Medium</option>
+                            <option>Low</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label>Receiver Department</label>
+                        <input type="text" class="form-control" value="@ViewBag.ReceiverDepartment" disabled />
+                        <input type="hidden" name="ReceiverDepartment" value="@ViewBag.ReceiverDepartment" />
+                    </div>
+                    <div class="col-md-12">
+                        <label>Select Staff</label>
+                        <select name="SelectedStaffIDs" class="form-control select2" multiple>
+                            @foreach (var s in allStaff)
+                            {
+                                <option value="@s.StaffID">@s.Name</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Add</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- View Modal -->
+<div class="modal fade" id="viewModal" tabindex="-1" aria-labelledby="viewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="viewModalLabel">Letter Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Inward Number</dt>
+                    <dd class="col-sm-8" id="viewInwardNumber"></dd>
+                    <dt class="col-sm-4">Outward Number</dt>
+                    <dd class="col-sm-8" id="viewOutwardNumber"></dd>
+                    <dt class="col-sm-4">Date Received</dt>
+                    <dd class="col-sm-8" id="viewDateReceived"></dd>
+                    <dt class="col-sm-4">Time Received</dt>
+                    <dd class="col-sm-8" id="viewTimeReceived"></dd>
+                    <dt class="col-sm-4">Sender Department</dt>
+                    <dd class="col-sm-8" id="viewSenderDept"></dd>
+                    <dt class="col-sm-4">Sender Name</dt>
+                    <dd class="col-sm-8" id="viewSenderName"></dd>
+                    <dt class="col-sm-4">Reference ID</dt>
+                    <dd class="col-sm-8" id="viewReferenceID"></dd>
+                    <dt class="col-sm-4">Subject</dt>
+                    <dd class="col-sm-8" id="viewSubject"></dd>
+                    <dt class="col-sm-4">Remarks</dt>
+                    <dd class="col-sm-8" id="viewRemarks"></dd>
+                    <dt class="col-sm-4">Priority</dt>
+                    <dd class="col-sm-8" id="viewPriority"></dd>
+                    <dt class="col-sm-4">Receiver Department</dt>
+                    <dd class="col-sm-8" id="viewReceiverDept"></dd>
+                    <dt class="col-sm-4">Staff</dt>
+                    <dd class="col-sm-8" id="viewStaff"></dd>
+                </dl>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<!-- Inside Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post" action="@Url.Action("UpdateInwardLetter", "Clerk")">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="LetterID" id="editLetterID" />
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title">Edit Inward Letter</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body row g-3">
+                    <div class="col-md-6">
+                        <label>Inward Number</label>
+                        <input type="text" class="form-control" id="editInwardNumber" disabled />
+                    </div>
+                    <div class="col-md-6">
+                        <label>Date Received</label>
+                        <input type="date" class="form-control" id="editDateReceived" disabled />
+                    </div>
+                    <div class="col-md-6">
+                        <label>Time Received</label>
+                        <input type="time" class="form-control" id="editTimeReceived" disabled />
+                    </div>
+                    <div class="col-md-6">
+                        <label>Outward Number</label>
+                        <input type="text" class="form-control" name="OutwardNumber" id="editOutwardNumber" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label>Sender Department</label>
+                        <select class="form-control" id="editSenderDept" name="SenderDepartment">
+                            @foreach (var dept in departments)
+                            {
+                                <option value="@dept.DepartmentName">@dept.DepartmentName</option>
+                            }
+                            <option value="Other">Other</option>
+                        </select>
+                        <input type="text" class="form-control mt-2 d-none" id="editOtherSenderDept" name="SenderDepartment" placeholder="Enter department name" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label>Sender Name</label>
+                        <input type="text" class="form-control" name="SenderName" id="editSenderName" />
+                    </div>
+                    <div class="col-md-6">
+                        <label>Reference ID</label>
+                        <input type="text" class="form-control" name="ReferenceID" id="editReferenceID" />
+                    </div>
+                    <div class="col-md-6">
+                        <label>Subject</label>
+                        <input type="text" class="form-control" id="editSubject" disabled />
+                    </div>
+                    <div class="col-md-6">
+                        <label>Remarks</label>
+                        <input type="text" class="form-control" name="Remarks" id="editRemarks" />
+                    </div>
+                    <div class="col-md-6">
+                        <label>Priority</label>
+                        <input type="text" class="form-control" id="editPriority" disabled />
+                    </div>
+                    <div class="col-md-6">
+                        <label>Receiver Department</label>
+                        <input type="text" class="form-control" id="editReceiverDept" disabled />
+                    </div>
+                    <div class="col-md-12">
+                        <label>Select Staff</label>
+                        <select class="form-control select2" id="editStaffSelect" name="SelectedStaffIDs" multiple>
+                            @foreach (var s in allStaff)
+                            {
+                                <option value="@s.StaffID">@s.Name</option>
+                            }
+
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Select2 -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            // Initialize Select2 for Add Modal
+            $('#addModal').on('shown.bs.modal', function () {
+                $('select.select2', this).select2({
+                    dropdownParent: $('#addModal')
+                });
+            });
+
+            // Initialize Select2 for Edit Modal
+            $('#editModal').on('shown.bs.modal', function () {
+                $('#editStaffSelect').select2({
+                    dropdownParent: $('#editModal')
+                });
+            });
+
+            $('#letterTable').on('click', '.view-btn', function () {
+                const letter = $(this).data('letter');
+                showViewModal(letter);
+            });
+
+            $('#letterTable').on('click', '.edit-btn', function () {
+                const letter = $(this).data('letter');
+                showEditModal(letter);
+            });
+
+            $('#filterSenderDept, #filterFromDate, #filterToDate, #filterPriority, #filterStaff').on('change keyup', function () {
+                applyFilters();
+            });
+
+            // Edit Modal Sender Dept - Show/hide textbox if 'Other'
+            $('#editSenderDept').on('change', function () {
+                if ($(this).val() === 'Other') {
+                    $('#editOtherSenderDept').removeClass('d-none').attr('name', 'SenderDepartment');
+                    $(this).removeAttr('name');
+                } else {
+                    $('#editOtherSenderDept').addClass('d-none').removeAttr('name');
+                    $(this).attr('name', 'SenderDepartment');
+                }
+            });
+
+            // Add Modal Sender Dept - Show/hide textbox if 'Other'
+            $('#addSenderDept').on('change', function () {
+                if ($(this).val() === 'Other') {
+                    $('#addOtherSenderDept').removeClass('d-none').attr('name', 'SenderDepartment');
+                    $(this).removeAttr('name');
+                } else {
+                    $('#addOtherSenderDept').addClass('d-none').removeAttr('name');
+                    $(this).attr('name', 'SenderDepartment');
+                }
+            });
+        });
+
+        function applyFilters() {
+            const sender = $('#filterSenderDept').val().toLowerCase();
+            const from = $('#filterFromDate').val();
+            const to = $('#filterToDate').val();
+            const priority = $('#filterPriority').val().toLowerCase();
+            const staff = $('#filterStaff').val().toLowerCase();
+
+            $('#letterTable tbody tr').each(function () {
+                const row = $(this);
+                const rowSender = row.data('sender')?.toLowerCase() || '';
+                const rowDate = row.data('date');
+                const rowPriority = row.data('priority')?.toLowerCase() || '';
+                const rowStaff = row.data('staff') || '';
+
+                const matchSender = !sender || rowSender === sender;
+                const matchPriority = !priority || rowPriority === priority;
+                const matchStaff = !staff || rowStaff.includes(staff);
+                const matchDate = (!from || rowDate >= from) && (!to || rowDate <= to);
+
+                row.toggle(matchSender && matchDate && matchPriority && matchStaff);
+            });
+        }
+
+        function clearFilters() {
+            $('#filterSenderDept').val('');
+            $('#filterFromDate').val('');
+            $('#filterToDate').val('');
+            $('#filterPriority').val('');
+            $('#filterStaff').val('');
+            applyFilters();
+        }
+
+        function showViewModal(letter) {
+            $('#viewInwardNumber').text(letter.InwardNumber || '');
+            $('#viewOutwardNumber').text(letter.OutwardNumber || '');
+            $('#viewDateReceived').text(letter.DateReceived || '');
+            $('#viewTimeReceived').text(letter.TimeReceived || '');
+            $('#viewSenderDept').text(letter.SenderDepartment || '');
+            $('#viewSenderName').text(letter.SenderName || '');
+            $('#viewReferenceID').text(letter.ReferenceID || '');
+            $('#viewSubject').text(letter.Subject || '');
+            $('#viewRemarks').text(letter.Remarks || '');
+            $('#viewPriority').text(letter.Priority || '');
+            $('#viewReceiverDept').text(letter.ReceiverDepartment || '');
+            $('#viewStaff').text(letter.StaffNames || '');
+
+            new bootstrap.Modal(document.getElementById('viewModal')).show();
+        }
+
+        function showEditModal(letter) {
+            $('#editLetterID').val(letter.LetterID || '');
+            $('#editInwardNumber').val(letter.InwardNumber || '');
+            $('#editDateReceived').val(letter.DateReceived || '');
+            $('#editTimeReceived').val(letter.TimeReceived || '');
+            $('#editOutwardNumber').val(letter.OutwardNumber || '');
+            $('#editSenderName').val(letter.SenderName || '');
+            $('#editReferenceID').val(letter.ReferenceID || '');
+            $('#editSubject').val(letter.Subject || '');
+            $('#editRemarks').val(letter.Remarks || '');
+            $('#editPriority').val(letter.Priority || '');
+            $('#editReceiverDept').val(letter.ReceiverDepartment || '');
+
+            if ($('#editSenderDept option[value="' + letter.SenderDepartment + '"]').length > 0) {
+                $('#editSenderDept').val(letter.SenderDepartment).trigger('change');
+            } else {
+                $('#editSenderDept').val('Other').trigger('change');
+                $('#editOtherSenderDept').val(letter.SenderDepartment).removeClass('d-none').attr('name', 'SenderDepartment');
+                $('#editSenderDept').removeAttr('name');
+            }
+
+            const editModal = new bootstrap.Modal(document.getElementById('editModal'));
+            editModal.show();
+
+            setTimeout(function () {
+                if (Array.isArray(letter.SelectedStaffIDs)) {
+                    const ids = letter.SelectedStaffIDs.map(id => id.toString());
+                    $('#editStaffSelect').val(ids).trigger('change');
+                } else {
+                    $('#editStaffSelect').val(null).trigger('change');
+                }
+            }, 300);
+        }
+    </script>
+}
+

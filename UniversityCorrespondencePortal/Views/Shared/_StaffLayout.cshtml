@@ -5,17 +5,9 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>@ViewBag.Title - Clerk Panel</title>
+    <title>@ViewBag.Title - Staff Panel</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-    <!-- ✅ jQuery (Must come before Bootstrap and other plugins) -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-    <!-- ✅ Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-
-    <!-- ✅ Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <style>
         html, body {
@@ -49,14 +41,13 @@
         <!-- Header / Navbar -->
         <header class="d-flex justify-content-between align-items-center p-3 bg-success text-white">
             <div class="fw-bold">
-                Welcome Clerk
+                Welcome Staff
             </div>
             <div>
-                <a href="@Url.Action("Staff", "Clerk")" class="btn btn-outline-light me-2">Staff</a>
-                <a href="@Url.Action("InwardLetters", "Clerk")" class="btn btn-outline-light me-2">InwardLetter</a>
-                <a href="@Url.Action("Report", "Clerk")" class="btn btn-outline-light me-2">Report</a>
-                <a href="@Url.Action("Profile", "Clerk")" class="btn btn-outline-light me-2">Profile</a>
-                <a href="@Url.Action("Logout", "Clerk")" class="btn btn-outline-light">Logout</a>
+                <a href="@Url.Action("Letter", "Staff")" class="btn btn-outline-light me-2">Letters</a>
+                <a href="@Url.Action("Report", "Staff")" class="btn btn-outline-light me-2">Report</a>
+                <a href="@Url.Action("Profile", "Staff")" class="btn btn-outline-light me-2">Profile</a>
+                <a href="@Url.Action("Login", "Staff")" class="btn btn-outline-light">Logout</a>
             </div>
         </header>
 
@@ -67,11 +58,12 @@
 
         <!-- Footer -->
         <footer class="layout-footer">
-            © 2025 University Correspondence Portal | Clerk Dashboard
+            © 2025 University Correspondence Portal | Staff Dashboard
         </footer>
     </div>
 
-    <!-- ✅ Scripts specific to views (e.g. Select2, Charts) will load here -->
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     @RenderSection("Scripts", required: false)
 </body>
 </html>

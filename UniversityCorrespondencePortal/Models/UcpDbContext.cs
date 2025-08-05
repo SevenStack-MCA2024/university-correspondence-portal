@@ -17,6 +17,9 @@ namespace UniversityCorrespondencePortal.Models
         public DbSet<OutwardLetter> OutwardLetters { get; set; }
         public DbSet<LetterSerialTracker> LetterSerialTrackers { get; set; }
         public DbSet<Admin> Admins { get; set; }
+        public DbSet<InwardLetterSerialTracker> InwardLetterSerialTrackers { get; set; }
+        public DbSet<OutwardLetterSerialTracker> OutwardLetterSerialTrackers { get; set; }
+
 
         // 🔁 Add the join table
         public DbSet<LetterStaff> LetterStaffs { get; set; }

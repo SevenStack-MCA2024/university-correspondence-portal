@@ -1,0 +1,92 @@
+﻿@model UniversityCorrespondencePortal.Models.ViewModels.StaffReportViewModel
+@{
+    ViewBag.Title = "Staff Report";
+    Layout = "~/Views/Shared/_StaffLayout.cshtml";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="container mt-4">
+    <h2>📊 Staff Report</h2>
+    <p>Summary and analytics of letters assigned to you.</p>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Total Inward Letters</h5>
+                    <p class="card-text fs-4">@Model.TotalInward</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Total Outward Letters</h5>
+                    <p class="card-text fs-4">@Model.TotalOutward</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-secondary mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Total Assigned Letters</h5>
+                    <p class="card-text fs-4">@(Model.TotalInward + Model.TotalOutward)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart Section -->
+    <div class="card mb-4">
+        <div class="card-header">📈 Letters per Year</div>
+        <div class="card-body">
+            <canvas id="lettersChart" height="100"></canvas>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const ctx = document.getElementById('lettersChart').getContext('2d');
+
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: @Html.Raw(Json.Encode(Model.YearlyStats.Select(s => s.Year))),
+                datasets: [
+                    {
+                        label: 'Inward Letters',
+                        data: @Html.Raw(Json.Encode(Model.YearlyStats.Select(s => s.InwardCount))),
+                        borderColor: 'blue',
+                        backgroundColor: 'lightblue',
+                        fill: false,
+                        tension: 0.2
+                    },
+                    {
+                        label: 'Outward Letters',
+                        data: @Html.Raw(Json.Encode(Model.YearlyStats.Select(s => s.OutwardCount))),
+                        borderColor: 'green',
+                        backgroundColor: 'lightgreen',
+                        fill: false,
+                        tension: 0.2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Letters Assigned per Year'
+                    }
+                }
+            }
+        });
+    </script>
+}
