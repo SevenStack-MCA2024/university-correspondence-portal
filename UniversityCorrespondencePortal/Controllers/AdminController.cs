@@ -7,7 +7,6 @@ using UniversityCorrespondencePortal.Models.ViewModels;
 using System.IO;
 using System.Web.Script.Serialization;
 
-
 namespace UniversityCorrespondencePortal.Controllers
 {
     public class AdminController : Controller
@@ -64,10 +63,8 @@ namespace UniversityCorrespondencePortal.Controllers
 
         public ActionResult AddStaff(string searchTerm, string designationFilter, string departmentFilter, string statusFilter, int? editId)
         {
-            // Start with base query
             var staffQuery = db.Staffs.AsQueryable();
 
-            // Apply search filter if provided
             if (!string.IsNullOrEmpty(searchTerm))
             {
                 staffQuery = staffQuery.Where(s =>
@@ -76,26 +73,22 @@ namespace UniversityCorrespondencePortal.Controllers
                     s.Email.Contains(searchTerm));
             }
 
-            // Apply designation filter if provided
             if (!string.IsNullOrEmpty(designationFilter))
             {
                 staffQuery = staffQuery.Where(s => s.Designation == designationFilter);
             }
 
-            // Apply department filter if provided
             if (!string.IsNullOrEmpty(departmentFilter))
             {
                 staffQuery = staffQuery.Where(s => s.StaffDepartments.Any(sd => sd.Department.DepartmentName == departmentFilter));
             }
 
-            // Apply status filter if provided
             if (!string.IsNullOrEmpty(statusFilter) && statusFilter != "All")
             {
                 bool isActive = statusFilter == "Active";
                 staffQuery = staffQuery.Where(s => s.IsActive == isActive);
             }
 
-            // First get the data without the concatenated departments
             var staffData = staffQuery
                 .Select(s => new
                 {
@@ -109,7 +102,6 @@ namespace UniversityCorrespondencePortal.Controllers
                 })
                 .ToList();
 
-            // Then create the view models in memory
             var staffList = staffData
                 .Select(s => new StaffViewModel
                 {
@@ -123,7 +115,6 @@ namespace UniversityCorrespondencePortal.Controllers
                 })
                 .ToList();
 
-            // Populate filter dropdowns
             ViewBag.DesignationList = db.Staffs.Select(s => s.Designation).Distinct().ToList();
             ViewBag.DepartmentList = db.Departments.ToList();
             ViewBag.StatusList = new List<string> { "Status(All)", "Active", "Inactive" };
@@ -132,7 +123,6 @@ namespace UniversityCorrespondencePortal.Controllers
             ViewBag.DesignationFilter = designationFilter;
             ViewBag.DepartmentFilter = departmentFilter;
 
-            // Set edit ID if provided
             if (editId.HasValue)
             {
                 TempData["EditID"] = editId.Value;
@@ -140,52 +130,6 @@ namespace UniversityCorrespondencePortal.Controllers
 
             return View(staffList);
         }
-
-        //public ActionResult AddStaff(string searchTerm, string designationFilter, string departmentFilter, int? editId)
-        //{
-        //    var staffList = db.Staffs
-        //        .Select(s => new
-        //        {
-        //            s.StaffID,
-        //            s.Name,
-        //            s.Email,
-        //            s.Phone,
-        //            s.Designation,
-        //            Departments = s.StaffDepartments.Select(sd => sd.Department.DepartmentName)
-        //        })
-        //        .ToList()
-        //        .Select(s => new StaffViewModel
-        //        {
-        //            StaffID = s.StaffID,
-        //            Name = s.Name,
-        //            Email = s.Email,
-        //            Phone = s.Phone,
-        //            Designation = s.Designation,
-        //            Departments = string.Join(", ", s.Departments)
-        //        });
-
-        //    if (!string.IsNullOrEmpty(searchTerm))
-        //    {
-        //        staffList = staffList.Where(s =>
-        //            s.Name.Contains(searchTerm) ||
-        //            s.StaffID.ToString().Contains(searchTerm) ||
-        //            s.Email.Contains(searchTerm));
-        //    }
-
-        //    if (!string.IsNullOrEmpty(designationFilter))
-        //        staffList = staffList.Where(s => s.Designation == designationFilter);
-
-        //    if (!string.IsNullOrEmpty(departmentFilter))
-        //        staffList = staffList.Where(s => s.Departments.Contains(departmentFilter));
-
-        //    ViewBag.DesignationList = db.Staffs.Select(s => s.Designation).Distinct().ToList();
-        //    ViewBag.DepartmentList = db.Departments.ToList();
-
-        //    if (editId.HasValue)
-        //        TempData["EditID"] = editId.Value;
-
-        //    return View(staffList.ToList());
-        //}
 
         [HttpPost]
         public ActionResult CreateStaff(Staff staff, string DepartmentID)
@@ -239,11 +183,11 @@ namespace UniversityCorrespondencePortal.Controllers
         }
 
         // =========================== CLERK ===========================
+
         public ActionResult AddClerk(string searchTerm, string departmentFilter, string editId)
         {
             var clerks = db.Clerks.Include("Department").AsQueryable();
 
-            // Filter by search term (ClerkID, Name, Email)
             if (!string.IsNullOrEmpty(searchTerm))
             {
                 clerks = clerks.Where(c =>
@@ -252,44 +196,41 @@ namespace UniversityCorrespondencePortal.Controllers
                     c.Email.Contains(searchTerm));
             }
 
-            // Filter by Department Name (Display value in dropdown)
             if (!string.IsNullOrEmpty(departmentFilter))
             {
                 clerks = clerks.Where(c => c.Department.DepartmentID == departmentFilter);
             }
 
-            // Populate dropdown with departments
-            var departmentList = db.Departments
-                .Select(d => new SelectListItem
-                {
-                    Value = d.DepartmentID,
-                    Text = d.DepartmentName
-                }).ToList();
+            ViewBag.DepartmentList = db.Departments.Select(d => new SelectListItem
+            {
+                Value = d.DepartmentID,
+                Text = d.DepartmentName
+            }).ToList();
 
-            ViewBag.DepartmentList = departmentList;
             ViewBag.EditID = editId;
 
-            var viewModel = clerks
-                .OrderBy(c => c.Name)
+            var viewModel = clerks.OrderBy(c => c.Name)
                 .Select(c => new ClerkViewModel
                 {
                     ClerkID = c.ClerkID,
                     Name = c.Name,
                     Email = c.Email,
                     Phone = c.Phone,
-                    DepartmentName = c.Department.DepartmentName
+                    DepartmentName = c.Department.DepartmentName,
+                    IsActive = c.IsActive
                 }).ToList();
 
             return View(viewModel);
         }
 
-
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult CreateClerk(Clerk clerk)
         {
             try
             {
                 clerk.PasswordHash = "0000";
+                clerk.IsActive = true;
                 db.Clerks.Add(clerk);
                 db.SaveChanges();
                 TempData["Message"] = "Clerk added successfully.";
@@ -303,6 +244,7 @@ namespace UniversityCorrespondencePortal.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult UpdateClerk(string ClerkID, string Name, string Email, string Phone)
         {
             try
@@ -329,24 +271,51 @@ namespace UniversityCorrespondencePortal.Controllers
             return RedirectToAction("AddClerk");
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ActivateClerk(string clerkId)
+        {
+            if (string.IsNullOrEmpty(clerkId))
+                return RedirectToAction("AddClerk");
+
+            var clerk = db.Clerks.Find(clerkId);
+            if (clerk != null)
+            {
+                clerk.IsActive = true;
+                db.SaveChanges();
+                TempData["Message"] = "Clerk activated successfully.";
+            }
+            else
+            {
+                TempData["Error"] = "Clerk not found.";
+            }
+
+            return RedirectToAction("AddClerk");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult DeactivateClerk(string clerkId)
+        {
+            if (string.IsNullOrEmpty(clerkId))
+                return RedirectToAction("AddClerk");
+
+            var clerk = db.Clerks.Find(clerkId);
+            if (clerk != null)
+            {
+                clerk.IsActive = false;
+                db.SaveChanges();
+                TempData["Message"] = "Clerk deactivated successfully.";
+            }
+            else
+            {
+                TempData["Error"] = "Clerk not found.";
+            }
+
+            return RedirectToAction("AddClerk");
+        }
+
         // =========================== DEPARTMENT ===========================
-
-        //public ActionResult AddDepartment(string search, string editId)
-        //{
-        //    var departments = db.Departments.AsQueryable();
-
-        //    if (!string.IsNullOrEmpty(search))
-        //    {
-        //        departments = departments.Where(d =>
-        //            d.DepartmentID.Contains(search) ||
-        //            d.DepartmentName.Contains(search));
-        //    }
-
-        //    TempData["EditID"] = editId;
-        //    ViewBag.Search = search;
-
-        //    return View(departments.OrderBy(d => d.DepartmentName).ToList());
-        //}
 
         [HttpGet]
         public ActionResult AddDepartment(string search, string filter = "All", string editId = "")
@@ -389,7 +358,6 @@ namespace UniversityCorrespondencePortal.Controllers
             return RedirectToAction("AddDepartment");
         }
 
-
         [HttpPost]
         public ActionResult AddDepartmentModal(string DepartmentID, string DepartmentName, string DepartmentCode)
         {
@@ -417,7 +385,6 @@ namespace UniversityCorrespondencePortal.Controllers
             return RedirectToAction("AddDepartment");
         }
 
-
         [HttpPost]
         public ActionResult UpdateDepartment(string DepartmentID, string DepartmentName, string DepartmentCode)
         {
@@ -444,45 +411,35 @@ namespace UniversityCorrespondencePortal.Controllers
             return RedirectToAction("AddDepartment");
         }
 
-        
-
-
         public class DepartmentStatusToggleModel
         {
             public string DepartmentId { get; set; }
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult ToggleStaffStatus(int staffId)
         {
             try
             {
-                // Get the staff member from your database
                 var staff = db.Staffs.Find(staffId);
-
                 if (staff == null)
                 {
                     TempData["Error"] = "Staff member not found";
                     return RedirectToAction("AddStaff");
                 }
 
-                // Toggle the status
                 staff.IsActive = !staff.IsActive;
-
-                // Save changes to database
                 db.SaveChanges();
 
                 TempData["Message"] = $"Staff member {(staff.IsActive ? "activated" : "deactivated")} successfully";
             }
             catch (Exception ex)
             {
-                // Log the error if needed
                 TempData["Error"] = "Error updating staff status: " + ex.Message;
             }
 
             return RedirectToAction("AddStaff");
         }
-
-
     }
 }

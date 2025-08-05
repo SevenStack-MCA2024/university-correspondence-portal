@@ -12,5 +12,6 @@ namespace UniversityCorrespondencePortal.Models.ViewModels
         public string Email { get; set; }
         public string Phone { get; set; }
         public string DepartmentName { get; set; } // For display
+        public bool IsActive { get; set; }
     }
 }
