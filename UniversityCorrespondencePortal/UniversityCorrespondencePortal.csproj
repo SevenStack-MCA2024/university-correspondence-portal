@@ -134,25 +134,35 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202508041810197_create-table.cs" />
-    <Compile Include="Migrations\202508041810197_create-table.Designer.cs">
-      <DependentUpon>202508041810197_create-table.cs</DependentUpon>
+    <Compile Include="Migrations\202508051645599_createschema.cs" />
+    <Compile Include="Migrations\202508051645599_createschema.Designer.cs">
+      <DependentUpon>202508051645599_createschema.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202508051950067_createschema1.cs" />
+    <Compile Include="Migrations\202508051950067_createschema1.Designer.cs">
+      <DependentUpon>202508051950067_createschema1.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Admin.cs" />
     <Compile Include="Models\Clerk.cs" />
     <Compile Include="Models\Department.cs" />
     <Compile Include="Models\InwardLetter.cs" />
+    <Compile Include="Models\InwardLetterSerialTracker.cs" />
     <Compile Include="Models\LetterSerialTracker.cs" />
     <Compile Include="Models\LetterStaff.cs" />
     <Compile Include="Models\OutwardLetter.cs" />
+    <Compile Include="Models\OutwardLetterSerialTracker.cs" />
     <Compile Include="Models\Staff.cs" />
     <Compile Include="Models\StaffDepartment.cs" />
     <Compile Include="Models\UcpDbContext.cs" />
     <Compile Include="Models\ViewModels\InwardLetterViewModel.cs" />
     <Compile Include="Models\ViewModels\ClerkViewModel.cs" />
+    <Compile Include="Models\ViewModels\StaffLetterViewModel.cs" />
+    <Compile Include="Models\ViewModels\StaffProfileViewModel.cs" />
+    <Compile Include="Models\ViewModels\StaffReportViewModel.cs" />
     <Compile Include="Models\ViewModels\StaffViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\EmailService.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap-grid.css" />
@@ -171,6 +181,8 @@
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\bootstrap.rtl.css" />
     <Content Include="Content\bootstrap.rtl.min.css" />
+    <Content Include="Content\logo.jpg" />
+    <Content Include="Content\main2.jpg" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
@@ -220,6 +232,13 @@
     <Content Include="Views\Clerk\Staff.cshtml" />
     <Content Include="Views\Clerk\Report.cshtml" />
     <Content Include="Views\Clerk\Profile.cshtml" />
+    <Content Include="Views\Clerk\InwardLetters.cshtml" />
+    <Content Include="Views\Staff\Letter.cshtml" />
+    <Content Include="Views\Staff\Profile.cshtml" />
+    <Content Include="Views\Staff\Report.cshtml" />
+    <Content Include="Views\Shared\_StaffLayout.cshtml" />
+    <Content Include="Views\Home\About.cshtml" />
+    <Content Include="Views\Home\Help.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap.rtl.min.css.map" />
@@ -249,8 +268,11 @@
     <Content Include="Scripts\jquery-3.7.0.min.map" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202508041810197_create-table.resx">
-      <DependentUpon>202508041810197_create-table.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202508051645599_createschema.resx">
+      <DependentUpon>202508051645599_createschema.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202508051950067_createschema1.resx">
+      <DependentUpon>202508051950067_createschema1.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

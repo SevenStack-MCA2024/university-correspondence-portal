@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace UniversityCorrespondencePortal.Models
 {
@@ -47,5 +47,17 @@ namespace UniversityCorrespondencePortal.Models
         // ✅ Multiple receiver names (comma-separated or semicolon-separated)
         [MaxLength(1000)]
         public string ReceiverNames { get; set; }
+
+        // ✅ Foreign Key for Staff
+        public int? StaffID { get; set; }
+
+        [ForeignKey("StaffID")]
+        public virtual Staff Staff { get; set; }
+
+        // ✅ Foreign Key for Department
+        public string DepartmentID { get; set; }
+
+        [ForeignKey("DepartmentID")]
+        public virtual Department Department { get; set; }
     }
 }

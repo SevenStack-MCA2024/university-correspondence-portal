@@ -1,0 +1,173 @@
+﻿@model List<UniversityCorrespondencePortal.Models.ViewModels.StaffLetterViewModel>
+
+@{
+    ViewBag.Title = "Letters";
+    Layout = "~/Views/Shared/_StaffLayout.cshtml";
+}
+
+<div class="container mt-4">
+    <h2>📬 Assigned Letters</h2>
+
+    <form method="get" class="row row-cols-lg-auto g-3 align-items-center mb-3">
+        <div class="col">
+            <input type="text" name="search" class="form-control" placeholder="Search..." value="@Request.QueryString["search"]" />
+        </div>
+        <div class="col">
+            <select name="type" class="form-control">
+                <option value="">All Types</option>
+                <option value="Inward" @(Request["type"] == "Inward" ? "selected" : "")>Inward</option>
+                <option value="Outward" @(Request["type"] == "Outward" ? "selected" : "")>Outward</option>
+            </select>
+        </div>
+        <div class="col">
+            <select name="senderDept" class="form-control">
+                <option value="">Sender Department</option>
+                @foreach (var d in ViewBag.SenderDepartments as List<string>)
+                {
+                    <option value="@d" @(Request["senderDept"] == d ? "selected" : "")>@d</option>
+                }
+            </select>
+        </div>
+        <div class="col">
+            <select name="receiverDept" class="form-control">
+                <option value="">Receiver Department</option>
+                @foreach (var d in ViewBag.ReceiverDepartments as List<string>)
+                {
+                    <option value="@d" @(Request["receiverDept"] == d ? "selected" : "")>@d</option>
+                }
+            </select>
+        </div>
+        <div class="col">
+            <select name="priority" class="form-control">
+                <option value="">Priority</option>
+                @foreach (var p in ViewBag.Priorities as List<string>)
+                {
+                    <option value="@p" @(Request["priority"] == p ? "selected" : "")>@p</option>
+                }
+            </select>
+        </div>
+        <div class="col">
+            <input type="date" name="fromDate" class="form-control" value="@Request["fromDate"]" />
+        </div>
+        <div class="col">
+            <input type="date" name="toDate" class="form-control" value="@Request["toDate"]" />
+        </div>
+        <div class="col">
+            <button type="submit" class="btn btn-primary">Apply Filters</button>
+            <a href="@Url.Action("Letter", "Staff")" class="btn btn-secondary">Clear Filters</a>
+        </div>
+    </form>
+
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Inward #</th>
+                <th>Outward #</th>
+                <th>Date</th>
+                <th>Sender</th>
+                <th>Subject</th>
+                <th>Priority</th>
+                <th>Receiver Dept</th>
+                <th>Staff Names</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                var filterType = Request["type"];
+                var filteredModel = string.IsNullOrEmpty(filterType)
+                    ? Model
+                    : Model.Where(m => m.Type == filterType).ToList();
+
+                if (filteredModel.Any())
+                {
+                    foreach (var letter in filteredModel)
+                    {
+                        <tr>
+                            <td>@letter.Type</td>
+                            <td>@letter.InwardNumber</td>
+                            <td>@letter.OutwardNumber</td>
+                            <td>@(letter.DateReceived?.ToString("yyyy-MM-dd") ?? "-")</td>
+                            <td>@letter.SenderName (@letter.SenderDepartment)</td>
+                            <td>@letter.Subject</td>
+                            <td>@letter.Priority</td>
+                            <td>@letter.ReceiverDepartment</td>
+                            <td>@string.Join(", ", letter.AssignedStaffNames)</td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-info view-letter-btn"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#letterModal"
+                                        data-letter='@Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(letter))'>
+                                    View
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr><td colspan="10" class="text-center">No letters found.</td></tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+
+<!-- Modal -->
+<div class="modal fade" id="letterModal" tabindex="-1" aria-labelledby="letterModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">📄 Letter Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-bordered">
+                    <tbody>
+                        <tr><th>Type</th><td id="modalType"></td></tr>
+                        <tr><th>Inward Number</th><td id="modalInwardNumber"></td></tr>
+                        <tr><th>Outward Number</th><td id="modalOutwardNumber"></td></tr>
+                        <tr><th>Date</th><td id="modalDateReceived"></td></tr>
+                        <tr><th>Delivery Mode</th><td id="modalDeliveryMode"></td></tr>
+                        <tr><th>Sender Department</th><td id="modalSenderDept"></td></tr>
+                        <tr><th>Sender Name</th><td id="modalSenderName"></td></tr>
+                        <tr><th>Reference ID</th><td id="modalReferenceID"></td></tr>
+                        <tr><th>Subject</th><td id="modalSubject"></td></tr>
+                        <tr><th>Remarks</th><td id="modalRemarks"></td></tr>
+                        <tr><th>Priority</th><td id="modalPriority"></td></tr>
+                        <tr><th>Receiver Department</th><td id="modalReceiverDept"></td></tr>
+                        <tr><th>Assigned Staff</th><td id="modalAssignedStaff"></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>document.addEventListener("DOMContentLoaded", function () {
+            const buttons = document.querySelectorAll(".view-letter-btn");
+            buttons.forEach(button => {
+                button.addEventListener("click", function () {
+                    const letter = JSON.parse(this.getAttribute("data-letter"));
+                    document.getElementById("modalType").innerText = letter.Type;
+                    document.getElementById("modalInwardNumber").innerText = letter.InwardNumber;
+                    document.getElementById("modalOutwardNumber").innerText = letter.OutwardNumber;
+                    document.getElementById("modalDateReceived").innerText = letter.DateReceived
+                        ? new Date(letter.DateReceived).toLocaleDateString()
+                        : '';
+                    document.getElementById("modalDeliveryMode").innerText = letter.DeliveryMode;
+                    document.getElementById("modalSenderDept").innerText = letter.SenderDepartment;
+                    document.getElementById("modalSenderName").innerText = letter.SenderName;
+                    document.getElementById("modalReferenceID").innerText = letter.ReferenceID;
+                    document.getElementById("modalSubject").innerText = letter.Subject;
+                    document.getElementById("modalRemarks").innerText = letter.Remarks;
+                    document.getElementById("modalPriority").innerText = letter.Priority;
+                    document.getElementById("modalReceiverDept").innerText = letter.ReceiverDepartment;
+                    document.getElementById("modalAssignedStaff").innerHTML = letter.AssignedStaffNames.join("<br>");
+                });
+            });
+        });</script>
+}

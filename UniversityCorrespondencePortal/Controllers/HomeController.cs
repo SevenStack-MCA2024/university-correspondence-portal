@@ -12,6 +12,13 @@ namespace UniversityCorrespondencePortal.Controllers
         {
             return View();
         }
+        
+
+        // GET: /Home/Help
+        public ActionResult Help()
+        {
+            return View();
+        }
 
         public ActionResult About()
         {

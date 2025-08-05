@@ -1,0 +1,72 @@
+﻿@model UniversityCorrespondencePortal.Models.ViewModels.StaffProfileViewModel
+
+@{
+    ViewBag.Title = "Staff Profile";
+    Layout = "~/Views/Shared/_StaffLayout.cshtml";
+}
+
+<div class="container mt-5">
+    <div class="card shadow p-4">
+        <h2 class="mb-4">👤 Staff Profile</h2>
+
+        <table class="table table-bordered">
+            <tbody>
+                <tr>
+                    <th>Name</th>
+                    <td>@Model.Name</td>
+                </tr>
+                <tr>
+                    <th>Designation</th>
+                    <td>@Model.Designation</td>
+                </tr>
+                <tr>
+                    <th>Email</th>
+                    <td>@Model.Email</td>
+                </tr>
+                <tr>
+                    <th>Phone</th>
+                    <td>@Model.Phone</td>
+                </tr>
+                <tr>
+                    <th>Status</th>
+                    <td>
+                        @if (Model.IsActive)
+                        {
+                            <span class="badge bg-success">Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Inactive</span>
+                        }
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h4 class="mt-5">🏢 Assigned Departments</h4>
+        @if (Model.Departments != null && Model.Departments.Any())
+        {
+            <table class="table table-striped mt-3">
+                <thead class="table-dark">
+                    <tr>
+                        <th>#</th>
+                        <th>Department Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < Model.Departments.Count; i++)
+                    {
+                        <tr>
+                            <td>@(i + 1)</td>
+                            <td>@Model.Departments[i]</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p class="text-muted">No departments assigned.</p>
+        }
+    </div>
+</div>

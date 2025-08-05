@@ -1,4 +1,5 @@
-﻿<!DOCTYPE html>
+﻿@* _Layout.cshtml *@
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
@@ -18,19 +19,33 @@
         main {
             flex: 1;
         }
+
+        .navbar-logo {
+            height: 50px;
+            margin-right: 15px;
+        }
     </style>
 </head>
 <body>
 
     @* Header/Navbar *@
     <nav class="navbar navbar-expand-lg navbar-light bg-light px-4">
-        <a class="navbar-brand" href="#">UCP</a>
+        <a class="navbar-brand d-flex align-items-center" href="#">
+            <img src="~/Content/logo.jpg" class="navbar-logo" alt="UCP Logo" />
+            <strong>UCP</strong>
+        </a>
 
-        <div class="collapse navbar-collapse justify-content-end">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
             <ul class="navbar-nav">
-                <li class="nav-item"><a class="nav-link" href="@Url.Action("Login", "Clerk")">Clerk</a></li>
-                <li class="nav-item"><a class="nav-link" href="@Url.Action("Login", "Staff")">Staff</a></li>
-                <li class="nav-item"><a class="nav-link" href="@Url.Action("Login", "Admin")">Admin</a></li>
+                <li class="nav-item"><a class="nav-link" href="@Url.Action("Login", "Clerk")"><i class="bi bi-person-circle"></i> Clerk</a></li>
+                <li class="nav-item"><a class="nav-link" href="@Url.Action("Login", "Staff")"><i class="bi bi-people"></i> Staff</a></li>
+                <li class="nav-item"><a class="nav-link" href="@Url.Action("Login", "Admin")"><i class="bi bi-shield-lock"></i> Admin</a></li>
+                <li class="nav-item"><a class="nav-link" href="@Url.Action("About", "Home")"><i class="bi bi-info-circle"></i> About</a></li>
+                <li class="nav-item"><a class="nav-link" href="@Url.Action("Help", "Home")"><i class="bi bi-question-circle"></i> Help</a></li>
             </ul>
         </div>
     </nav>
@@ -39,7 +54,6 @@
         @RenderBody()
     </main>
 
-    @* Footer always sticks at the bottom *@
     <footer class="footer py-3 bg-light text-center">
         <div class="container">
             <span class="text-muted">© 2025 University Correspondence Portal. All Rights Reserved.</span>
