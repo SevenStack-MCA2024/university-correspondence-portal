@@ -18,8 +18,6 @@ namespace UniversityCorrespondencePortal.Controllers
             return View();
         }
 
-       
-
         [HttpPost]
         public ActionResult Login(string username, string password)
         {
@@ -30,7 +28,7 @@ namespace UniversityCorrespondencePortal.Controllers
             }
 
             var clerk = db.Clerks.FirstOrDefault(c =>
-                c.Email == username && c.PasswordHash == password
+                c.Email == username && c.PasswordHash == password && c.IsActive
             );
 
             if (clerk != null)
@@ -42,11 +40,11 @@ namespace UniversityCorrespondencePortal.Controllers
                 return RedirectToAction("Profile");
             }
 
-            ViewBag.Error = "Invalid username or password.";
+            ViewBag.Error = "Invalid username, password, or your account is inactive.";
             return View();
         }
 
-
+        // ---------------------- PROFILE ----------------------
         // ---------------------- PROFILE ----------------------
         public ActionResult Profile()
         {
@@ -59,47 +57,11 @@ namespace UniversityCorrespondencePortal.Controllers
             if (clerk == null)
                 return HttpNotFound();
 
-            ViewBag.Departments = new SelectList(db.Departments, "DepartmentID", "DepartmentName", clerk.DepartmentID);
+            var department = db.Departments.FirstOrDefault(d => d.DepartmentID == clerk.DepartmentID);
+            ViewBag.DepartmentName = department != null ? department.DepartmentName : "N/A";
+
             return View(clerk);
         }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Profile(Clerk model, string NewPassword)
-        {
-            if (Session["ClerkID"] == null)
-                return RedirectToAction("Login");
-
-            var existingClerk = db.Clerks.Find(model.ClerkID);
-            if (existingClerk == null)
-                return HttpNotFound();
-
-            if (ModelState.IsValid)
-            {
-                existingClerk.Name = model.Name;
-                existingClerk.Email = model.Email;
-                existingClerk.Phone = model.Phone;
-                existingClerk.DepartmentID = model.DepartmentID;
-
-                if (!string.IsNullOrEmpty(NewPassword))
-                {
-                    existingClerk.PasswordHash = HashPassword(NewPassword);
-                }
-
-                db.SaveChanges();
-                TempData["Success"] = "Profile updated successfully.";
-                return RedirectToAction("Profile");
-            }
-
-            ViewBag.Departments = new SelectList(db.Departments, "DepartmentID", "DepartmentName", model.DepartmentID);
-            return View(model);
-        }
-
-        private string HashPassword(string password)
-        {
-            return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(password));
-        }
-
         // ---------------------- REPORT ----------------------
         public ActionResult Report()
         {
@@ -124,24 +86,57 @@ namespace UniversityCorrespondencePortal.Controllers
 
             string clerkId = Session["ClerkID"].ToString();
             var clerk = db.Clerks.Find(clerkId);
-
             if (clerk == null)
-                return HttpNotFound("Clerk not found.");
+                return RedirectToAction("Login");
 
-            string clerkDeptId = clerk.DepartmentID;
-
-            ViewBag.ClerkDepartmentID = clerkDeptId;
+            // ✅ Pass clerk's department ID and department name to view
+            ViewBag.ClerkDepartmentID = clerk.DepartmentID;
             ViewBag.ClerkDepartmentName = db.Departments
-                .Where(d => d.DepartmentID == clerkDeptId)
+                .Where(d => d.DepartmentID == clerk.DepartmentID)
                 .Select(d => d.DepartmentName)
                 .FirstOrDefault();
 
-            // Get staff with status
-            var staffList = db.StaffDepartments
-                .Where(sd => sd.DepartmentID == clerkDeptId)
-                .Select(sd => sd.Staff)
-                .Distinct()
-                .ToList()
+            // Base query
+            var staffQuery = db.Staffs.AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                staffQuery = staffQuery.Where(s =>
+                    s.Name.Contains(searchTerm) ||
+                    s.StaffID.ToString().Contains(searchTerm) ||
+                    s.Email.Contains(searchTerm));
+            }
+
+            if (!string.IsNullOrEmpty(designationFilter))
+            {
+                staffQuery = staffQuery.Where(s => s.Designation == designationFilter);
+            }
+
+            if (!string.IsNullOrEmpty(departmentFilter))
+            {
+                staffQuery = staffQuery.Where(s => s.StaffDepartments.Any(sd => sd.Department.DepartmentName == departmentFilter));
+            }
+
+            if (!string.IsNullOrEmpty(statusFilter) && statusFilter != "All")
+            {
+                bool isActive = statusFilter == "Active";
+                staffQuery = staffQuery.Where(s => s.IsActive == isActive);
+            }
+
+            var staffData = staffQuery
+                .Select(s => new
+                {
+                    s.StaffID,
+                    s.Name,
+                    s.Email,
+                    s.Phone,
+                    s.Designation,
+                    s.IsActive,
+                    StaffDepartments = s.StaffDepartments.Select(sd => sd.Department.DepartmentName)
+                })
+                .ToList();
+
+            var staffList = staffData
                 .Select(s => new StaffViewModel
                 {
                     StaffID = s.StaffID,
@@ -149,61 +144,43 @@ namespace UniversityCorrespondencePortal.Controllers
                     Email = s.Email,
                     Phone = s.Phone,
                     Designation = s.Designation,
-                    Departments = string.Join(", ", s.StaffDepartments.Select(d => d.Department.DepartmentName)),
+                    Departments = string.Join(", ", s.StaffDepartments),
                     IsActive = s.IsActive
-                });
-
-            // Apply filters
-            if (!string.IsNullOrEmpty(searchTerm))
-            {
-                string loweredSearch = searchTerm.ToLower();
-                staffList = staffList.Where(s =>
-                    (s.Name != null && s.Name.ToLower().Contains(loweredSearch)) ||
-                    s.StaffID.ToString().Contains(loweredSearch) ||
-                    (s.Email != null && s.Email.ToLower().Contains(loweredSearch)));
-            }
-
-            if (!string.IsNullOrEmpty(designationFilter))
-                staffList = staffList.Where(s => s.Designation == designationFilter);
-
-            if (!string.IsNullOrEmpty(statusFilter))
-            {
-                bool isActive = bool.Parse(statusFilter);
-                staffList = staffList.Where(s => s.IsActive == isActive);
-            }
-
-            // Prepare dropdowns
-            ViewBag.DesignationList = db.StaffDepartments
-                .Where(sd => sd.DepartmentID == clerkDeptId)
-                .Select(sd => sd.Staff.Designation)
-                .Distinct()
+                })
                 .ToList();
 
-            ViewBag.DepartmentList = db.Departments
-                .Where(d => d.DepartmentID == clerkDeptId)
-                .ToList();
+            ViewBag.DesignationList = db.Staffs.Select(s => s.Designation).Distinct().ToList();
+            ViewBag.DepartmentList = db.Departments.ToList();
+            ViewBag.StatusList = new List<string> { "Status(All)", "Active", "Inactive" };
+            ViewBag.SelectedStatus = statusFilter;
+            ViewBag.SearchTerm = searchTerm;
+            ViewBag.DesignationFilter = designationFilter;
+            ViewBag.DepartmentFilter = departmentFilter;
 
             if (editId.HasValue)
+            {
                 TempData["EditID"] = editId.Value;
+            }
 
-            return View(staffList.ToList());
+            return View(staffList);
         }
 
+
+
+
         [HttpPost]
-        public ActionResult CreateStaff(Staff staff)
+        public ActionResult CreateStaff(Staff staff, string DepartmentID)
         {
             try
             {
                 staff.PasswordHash = "0000";
-                staff.IsActive = true;
                 db.Staffs.Add(staff);
                 db.SaveChanges();
 
-                // Add department association
                 db.StaffDepartments.Add(new StaffDepartment
                 {
                     StaffID = staff.StaffID,
-                    DepartmentID = Request.Form["DepartmentID"]
+                    DepartmentID = DepartmentID
                 });
 
                 db.SaveChanges();
@@ -218,7 +195,7 @@ namespace UniversityCorrespondencePortal.Controllers
         }
 
         [HttpPost]
-        public ActionResult UpdateStaff(int StaffID, string Email, string Phone, string Designation, bool IsActive)
+        public ActionResult UpdateStaff(int StaffID, string Name, string Email, string Phone, string Designation)
         {
             try
             {
@@ -226,10 +203,10 @@ namespace UniversityCorrespondencePortal.Controllers
                 if (staff == null)
                     return HttpNotFound();
 
+                staff.Name = Name;
                 staff.Email = Email;
                 staff.Phone = Phone;
                 staff.Designation = Designation;
-                staff.IsActive = IsActive;
 
                 db.SaveChanges();
                 TempData["Message"] = "Staff updated successfully.";
@@ -242,7 +219,34 @@ namespace UniversityCorrespondencePortal.Controllers
             return RedirectToAction("Staff");
         }
 
-        
-        
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ToggleStaffStatus(int staffId)
+        {
+            try
+            {
+                var staff = db.Staffs.Find(staffId);
+                if (staff == null)
+                {
+                    TempData["Error"] = "Staff member not found";
+                    return RedirectToAction("Staff"); // ✅ Fixed redirect
+                }
+
+                staff.IsActive = !staff.IsActive;
+                db.SaveChanges();
+
+                TempData["Message"] = $"Staff member {(staff.IsActive ? "activated" : "deactivated")} successfully";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Error updating staff status: " + ex.Message;
+            }
+
+            return RedirectToAction("Staff"); // ✅ Stay in Clerk's Staff panel
+        }
+
+
+
     }
 }
