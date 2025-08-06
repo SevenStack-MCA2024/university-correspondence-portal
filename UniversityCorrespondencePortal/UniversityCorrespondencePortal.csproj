@@ -152,6 +152,7 @@
     <Compile Include="Models\UcpDbContext.cs" />
     <Compile Include="Models\ViewModels\InwardLetterViewModel.cs" />
     <Compile Include="Models\ViewModels\ClerkViewModel.cs" />
+    <Compile Include="Models\ViewModels\OutwardLetterViewModel.cs" />
     <Compile Include="Models\ViewModels\StaffLetterViewModel.cs" />
     <Compile Include="Models\ViewModels\StaffProfileViewModel.cs" />
     <Compile Include="Models\ViewModels\StaffReportViewModel.cs" />
@@ -235,6 +236,8 @@
     <Content Include="Views\Home\About.cshtml" />
     <Content Include="Views\Home\Help.cshtml" />
     <Content Include="Views\Clerk\OutwardLetters.cshtml" />
+    <Content Include="Views\Clerk\_OutwardAddModal.cshtml" />
+    <Content Include="Views\Clerk\_OutwardEditModal.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap.rtl.min.css.map" />

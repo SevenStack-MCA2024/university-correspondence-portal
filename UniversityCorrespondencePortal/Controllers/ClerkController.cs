@@ -767,5 +767,155 @@ namespace UniversityCorrespondencePortal.Controllers
         }
 
 
+
+        //outward letters
+        [HttpGet]
+        public ActionResult OutwardLetters()
+        {
+            if (Session["ClerkID"] == null || Session["DepartmentID"] == null)
+                return RedirectToAction("Login");
+
+            string deptId = Session["DepartmentID"].ToString();
+
+            var letters = db.OutwardLetters
+                .Where(l => l.DepartmentID == deptId)
+                .Include(l => l.Staff)
+                .Include(l => l.Department)
+                .OrderByDescending(l => l.OutwardLetterID)
+                .ToList();
+
+            var model = letters.Select(l => new OutwardLetterViewModel
+            {
+                OutwardLetterID = l.OutwardLetterID,
+                OutwardNumber = l.OutwardNumber,
+                LetterNumber = l.LetterNumber,
+                DateReceived = l.DateReceived,
+                TimeReceived = l.TimeReceived,
+                DeliveryMode = l.DeliveryMode,
+                ReferenceID = l.ReferenceID,
+                Subject = l.Subject,
+                Remarks = l.Remarks,
+                Priority = l.Priority,
+                SenderDepartment = l.SenderDepartment,
+                ReceiverDepartments = l.ReceiverDepartments,
+                ReceiverNames = l.ReceiverNames,
+                StaffID = l.StaffID,
+                StaffName = l.Staff != null ? l.Staff.Name : "",
+                DepartmentID = l.DepartmentID,
+                DepartmentName = l.Department != null ? l.Department.DepartmentName : ""
+            }).ToList();
+
+            return View(model);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult CreateOutwardLetter(OutwardLetterViewModel model)
+        {
+            if (Session["ClerkID"] == null || Session["DepartmentID"] == null)
+                return RedirectToAction("Login");
+
+            string deptId = Session["DepartmentID"].ToString();
+
+            // 🔍 Get Department details
+            var dept = db.Departments.Find(deptId);
+            if (dept == null)
+                return RedirectToAction("OutwardLetters");
+
+            // 🔁 Delete last outward letter and tracker for this department
+            var lastLetter = db.OutwardLetters
+                .Where(l => l.DepartmentID == deptId)
+                .OrderByDescending(l => l.OutwardLetterID)
+                .FirstOrDefault();
+
+            if (lastLetter != null)
+            {
+                db.OutwardLetters.Remove(lastLetter);
+
+                var lastTracker = db.OutwardLetterSerialTrackers
+                    .FirstOrDefault(t => t.DepartmentID == deptId && t.LetterID == lastLetter.OutwardLetterID);
+
+                if (lastTracker != null)
+                    db.OutwardLetterSerialTrackers.Remove(lastTracker);
+
+                db.SaveChanges();
+            }
+
+            // 🔢 Generate new serial
+            string prefix = dept.DepartmentCode + "/OUT/";
+            int newSerial = 1;
+
+            var lastSerialTracker = db.OutwardLetterSerialTrackers
+                .Where(t => t.DepartmentID == deptId)
+                .OrderByDescending(t => t.TrackerID)
+                .FirstOrDefault();
+
+            if (lastSerialTracker != null && int.TryParse(lastSerialTracker.LastSerialNumber?.Split('/').Last(), out int parsed))
+            {
+                newSerial = parsed + 1;
+            }
+
+            string outwardNumber = prefix + newSerial.ToString("D3");
+
+            // 📨 Create new OutwardLetter
+            var newLetter = new OutwardLetter
+            {
+                OutwardNumber = outwardNumber,
+                LetterNumber = model.LetterNumber,
+                DateReceived = model.DateReceived,
+                TimeReceived = model.TimeReceived,
+                DeliveryMode = model.DeliveryMode,
+                ReferenceID = model.ReferenceID,
+                Subject = model.Subject,
+                Remarks = model.Remarks,
+                Priority = model.Priority,
+                SenderDepartment = model.SenderDepartment,
+                ReceiverDepartments = model.ReceiverDepartments,
+                ReceiverNames = model.ReceiverNames,
+                StaffID = model.StaffID,
+                DepartmentID = deptId
+            };
+
+            db.OutwardLetters.Add(newLetter);
+            db.SaveChanges(); // Save first to get newLetter ID
+
+            // 📌 Create new tracker
+            var newTracker = new OutwardLetterSerialTracker
+            {
+                DepartmentID = deptId,
+                Date = DateTime.Now,
+                LastSerialNumber = outwardNumber,
+                LetterID = newLetter.OutwardLetterID
+            };
+
+            db.OutwardLetterSerialTrackers.Add(newTracker);
+            db.SaveChanges();
+
+            return RedirectToAction("OutwardLetters");
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult EditOutwardLetter(OutwardLetterViewModel model)
+        {
+            var letter = db.OutwardLetters.Find(model.OutwardLetterID);
+            if (letter == null) return RedirectToAction("OutwardLetters");
+
+            letter.LetterNumber = model.LetterNumber;
+            letter.DateReceived = model.DateReceived;
+            letter.TimeReceived = model.TimeReceived;
+            letter.DeliveryMode = model.DeliveryMode;
+            letter.ReferenceID = model.ReferenceID;
+            letter.Subject = model.Subject;
+            letter.Remarks = model.Remarks;
+            letter.Priority = model.Priority;
+            letter.SenderDepartment = model.SenderDepartment;
+            letter.ReceiverDepartments = model.ReceiverDepartments;
+            letter.ReceiverNames = model.ReceiverNames;
+            letter.StaffID = model.StaffID;
+
+            db.SaveChanges();
+            return RedirectToAction("OutwardLetters");
+        }
+
+
     }
 }

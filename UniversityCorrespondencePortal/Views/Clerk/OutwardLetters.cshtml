@@ -1,7 +1,137 @@
-﻿
+﻿@model List<UniversityCorrespondencePortal.Models.ViewModels.OutwardLetterViewModel>
 @{
-    ViewBag.Title = "OutwardLetters";
+    ViewBag.Title = "Outward Letters";
+    Layout = "~/Views/Shared/_ClerkLayout.cshtml";
+    var departments = ViewBag.Departments as List<UniversityCorrespondencePortal.Models.Department>;
+    var staffList = ViewBag.StaffList as List<UniversityCorrespondencePortal.Models.Staff>;
 }
 
-<h2>OutwardLetters</h2>
+<h2 class="text-center my-4"><i class="bi bi-send"></i> Outward Letters</h2>
 
+<div class="row mb-3">
+    <div class="col-md-6">
+        <input type="text" id="searchInput" class="form-control" placeholder="Search by Outward Number, Sender Dept, Receiver Dept, Staff, Ref ID, Subject...">
+    </div>
+    <div class="col-md-6 text-end">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addOutwardModal">
+            <i class="bi bi-plus-circle"></i> Add Outward Letter
+        </button>
+    </div>
+</div>
+
+<table class="table table-bordered table-hover" id="outwardTable">
+    <thead class="table-dark">
+        <tr>
+            <th>Outward #</th>
+            <th>Letter #</th>
+            <th>Date</th>
+            <th>Sender Dept</th>
+            <th>Receiver Dept(s)</th>
+            <th>Staff</th>
+            <th>Subject</th>
+            <th>Priority</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var letter in Model)
+        {
+            <tr>
+                <td>@letter.OutwardNumber</td>
+                <td>@letter.LetterNumber</td>
+                <td>@letter.DateReceived?.ToString("dd-MM-yyyy")</td>
+                <td>@letter.SenderDepartment</td>
+                <td>@letter.ReceiverDepartments</td>
+                <td>@letter.StaffName</td>
+                <td>@letter.Subject</td>
+                <td>@letter.Priority</td>
+                <td>
+                    <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#viewModal@letter.OutwardLetterID">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                    <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editModal@letter.OutwardLetterID">
+                        <i class="bi bi-pencil-square"></i>
+                    </button>
+                </td>
+            </tr>
+
+            <!-- View Modal -->
+            <div class="modal fade" id="viewModal@letter.OutwardLetterID" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header bg-info text-white">
+                            <h5 class="modal-title">View Outward Letter</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <dl class="row">
+                                <dt class="col-sm-4">Outward Number:</dt>
+                                <dd class="col-sm-8">@letter.OutwardNumber</dd>
+
+                                <dt class="col-sm-4">Letter Number:</dt>
+                                <dd class="col-sm-8">@letter.LetterNumber</dd>
+
+                                <dt class="col-sm-4">Sender Department:</dt>
+                                <dd class="col-sm-8">@letter.SenderDepartment</dd>
+
+                                <dt class="col-sm-4">Receiver Departments:</dt>
+                                <dd class="col-sm-8">@letter.ReceiverDepartments</dd>
+
+                                <dt class="col-sm-4">Receiver Names:</dt>
+                                <dd class="col-sm-8">@letter.ReceiverNames</dd>
+
+                                <dt class="col-sm-4">Staff:</dt>
+                                <dd class="col-sm-8">@letter.StaffName</dd>
+
+                                <dt class="col-sm-4">Reference ID:</dt>
+                                <dd class="col-sm-8">@letter.ReferenceID</dd>
+
+                                <dt class="col-sm-4">Subject:</dt>
+                                <dd class="col-sm-8">@letter.Subject</dd>
+
+                                <dt class="col-sm-4">Remarks:</dt>
+                                <dd class="col-sm-8">@letter.Remarks</dd>
+
+                                <dt class="col-sm-4">Priority:</dt>
+                                <dd class="col-sm-8">@letter.Priority</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Edit Modal -->
+            @Html.Partial("_OutwardEditModal", letter)
+        }
+    </tbody>
+</table>
+
+<!-- Add Modal -->
+@Html.Partial("_OutwardAddModal", new UniversityCorrespondencePortal.Models.ViewModels.OutwardLetterViewModel
+{
+    StaffOptions = staffList,
+    DepartmentOptions = departments
+})
+
+@section Scripts {
+    <script>
+        // Client-side filter
+        document.getElementById("searchInput").addEventListener("keyup", function () {
+            var value = this.value.toLowerCase();
+            document.querySelectorAll("#outwardTable tbody tr").forEach(function (row) {
+                var match = false;
+                row.querySelectorAll("td").forEach(function (cell) {
+                    if (cell.innerText.toLowerCase().includes(value))
+                        match = true;
+                });
+                row.style.display = match ? "" : "none";
+            });
+        });
+
+        function toggleOther(deptSelectId, otherTextboxId) {
+            var select = document.getElementById(deptSelectId);
+            var textbox = document.getElementById(otherTextboxId);
+            textbox.style.display = (select.value === "Other") ? "block" : "none";
+        }
+    </script>
+}
