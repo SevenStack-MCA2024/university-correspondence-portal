@@ -1,4 +1,5 @@
 ﻿@model List<UniversityCorrespondencePortal.Models.ViewModels.StaffViewModel>
+
 @{
     ViewBag.Title = "Add Staff";
     Layout = "~/Views/Shared/_ClerkLayout.cshtml";
@@ -74,14 +75,13 @@
                         {
                             if (staff.StaffID == editId)
                             {
+                                <form method="post" action="@Url.Action("UpdateStaff", "Clerk")">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="StaffID" value="@staff.StaffID" />
                                 <tr data-name="@staff.Name" data-email="@staff.Email" data-phone="@staff.Phone"
                                     data-department="@staff.Departments" data-designation="@staff.Designation"
                                     data-status="@(staff.IsActive ? "Active" : "Inactive")">
-                                    <form method="post" action="@Url.Action("UpdateStaff", "Clerk")">
-                                    <td>
-                                        <input type="hidden" name="StaffID" value="@staff.StaffID" />
-                                        @staff.StaffID
-                                    </td>
+                                    <td>@staff.StaffID</td>
                                     <td><input type="text" name="Name" value="@staff.Name" class="form-control form-control-sm" required /></td>
                                     <td><input type="email" name="Email" value="@staff.Email" class="form-control form-control-sm" required /></td>
                                     <td><input type="text" name="Phone" value="@staff.Phone" class="form-control form-control-sm" required /></td>
@@ -94,8 +94,8 @@
                                         <button type="submit" class="btn btn-sm btn-warning me-1">Save</button>
                                         <a href="@Url.Action("Staff", "Clerk")" class="btn btn-sm btn-secondary">Cancel</a>
                                     </td>
-                                    </form>
                                 </tr>
+                                </form>
                             }
                             else
                             {
@@ -115,7 +115,7 @@
                                         <div class="d-flex gap-1 justify-content-center">
                                             <a href="@Url.Action("Staff", "Clerk", new { editId = staff.StaffID })"
                                                class="btn btn-sm btn-warning">Edit</a>
-                                            <form method="post" action="@Url.Action("ToggleStaffStatus", "Clerk")">
+                                            <form method="post" action="@Url.Action("ToggleStaffStatus", "Clerk")" class="d-inline">
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="staffId" value="@staff.StaffID" />
                                                 <button type="submit" class="btn btn-sm @(staff.IsActive ? "btn-danger" : "btn-success")">
@@ -144,43 +144,44 @@
 <div class="modal fade" id="addStaffModal" tabindex="-1" aria-labelledby="addStaffModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form method="post" action="@Url.Action("CreateStaff", "Clerk")">
+            <form method="post" action="@Url.Action("CreateStaff", "Clerk")" novalidate class="needs-validation" id="addStaffForm">
                 @Html.AntiForgeryToken()
                 <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title" id="addStaffModalLabel">Add New Staff</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body row g-3">
-                    
                     <div class="col-md-6">
                         <label class="form-label">Name</label>
                         <input type="text" name="Name" class="form-control" required />
+                        <div class="invalid-feedback">Name is required.</div>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Email</label>
                         <input type="email" name="Email" class="form-control" required />
+                        <div class="invalid-feedback">Please enter a valid email.</div>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Phone</label>
-                        <input type="text" name="Phone" class="form-control" required />
+                        <input type="text" name="Phone" class="form-control" required pattern="\d{10}" />
+                        <div class="invalid-feedback">Enter a valid 10-digit phone number.</div>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Designation</label>
                         <input type="text" name="Designation" class="form-control" required />
+                        <div class="invalid-feedback">Designation is required.</div>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Department</label>
                         <input type="text" class="form-control" value="@ViewBag.ClerkDepartmentName" readonly />
                         <input type="hidden" name="DepartmentID" value="@ViewBag.ClerkDepartmentID" />
                     </div>
-                   
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     <button type="submit" class="btn btn-primary">Save changes</button>
                 </div>
             </form>
-
         </div>
     </div>
 </div>
@@ -206,11 +207,7 @@
                 const matchesDesig = !desig || designation.includes(desig);
                 const matchesStatus = !status || rowStatus === status;
 
-                if (matchesSearch && matchesDesig && matchesStatus) {
-                    row.style.display = "";
-                } else {
-                    row.style.display = "none";
-                }
+                row.style.display = (matchesSearch && matchesDesig && matchesStatus) ? "" : "none";
             });
         }
 
@@ -218,7 +215,50 @@
             document.getElementById("searchInput").value = "";
             document.getElementById("designationFilter").value = "";
             document.getElementById("statusFilter").value = "";
-            applyFilters(); // Reset view
+            applyFilters();
         }
+
+        @if (TempData["Error"] != null)
+        {
+            <text>
+                document.addEventListener("DOMContentLoaded", function () {
+                    const modal = new bootstrap.Modal(document.getElementById('addStaffModal'));
+                    modal.show();
+                });
+            </text>
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.getElementById('addStaffForm');
+
+            form.querySelectorAll('input').forEach(input => {
+                input.addEventListener('input', function () {
+                    if (input.checkValidity()) {
+                        input.classList.remove('is-invalid');
+                        input.classList.add('is-valid');
+                    } else {
+                        input.classList.remove('is-valid');
+                        input.classList.add('is-invalid');
+                    }
+                });
+            });
+
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    form.querySelectorAll('input').forEach(input => {
+                        if (!input.checkValidity()) {
+                            input.classList.add('is-invalid');
+                        } else {
+                            input.classList.remove('is-invalid');
+                            input.classList.add('is-valid');
+                        }
+                    });
+                }
+                form.classList.add('was-validated');
+            });
+        });
     </script>
 }

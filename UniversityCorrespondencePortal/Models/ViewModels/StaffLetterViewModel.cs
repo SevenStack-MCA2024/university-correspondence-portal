@@ -10,6 +10,8 @@ namespace UniversityCorrespondencePortal.Models.ViewModels
         public int LetterID { get; set; }
         public string InwardNumber { get; set; }
         public string OutwardNumber { get; set; }
+        public int TotalInward { get; set; }
+        public int TotalOutward { get; set; }
         public DateTime? DateReceived { get; set; }
         public string DeliveryMode { get; set; }
         public string SenderDepartment { get; set; }

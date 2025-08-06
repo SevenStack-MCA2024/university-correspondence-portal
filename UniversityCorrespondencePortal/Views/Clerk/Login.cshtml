@@ -1,6 +1,6 @@
 ﻿@{
     ViewBag.Title = "Clerk Login";
-    Layout = "~/Views/Shared/_Layout.cshtml"; // Or set to null if you want a plain login page
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="container mt-5">
@@ -25,9 +25,109 @@
                         <div class="text-center">
                             <button type="submit" class="btn btn-primary w-100">Login</button>
                         </div>
+                        <div class="text-center mt-3">
+                            <a href="#" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal">Forgot Password?</a>
+                        </div>
                     </form>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Forgot Password Modal -->
+<div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Forgot Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Step 1: Enter Email -->
+                <div id="step1">
+                    <label for="forgotEmail">Enter your registered email:</label>
+                    <input type="email" id="forgotEmail" class="form-control mb-2" />
+                    <button id="sendOtpBtn" class="btn btn-primary w-100">Send OTP</button>
+                </div>
+
+                <!-- Step 2: Enter OTP -->
+                <div id="step2" style="display:none;">
+                    <label for="otpInput">Enter OTP:</label>
+                    <input type="text" id="otpInput" class="form-control mb-2" />
+                    <button id="verifyOtpBtn" class="btn btn-success w-100">Verify OTP</button>
+                </div>
+
+                <!-- Step 3: Enter New Password -->
+                <div id="step3" style="display:none;">
+                    <label for="newPassword">Enter New Password:</label>
+                    <input type="password" id="newPassword" class="form-control mb-2" />
+                    <button id="updatePasswordBtn" class="btn btn-success w-100">Update Password</button>
+                </div>
+
+                <div id="forgotError" class="text-danger mt-2"></div>
+                <div id="forgotSuccess" class="text-success mt-2"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>var currentEmail = "";
+
+        $("#sendOtpBtn").click(function () {
+            currentEmail = $("#forgotEmail").val();
+            if (currentEmail === "") {
+                $("#forgotError").text("Please enter your email.");
+                return;
+            }
+            $.post("/Clerk/SendOtp", { email: currentEmail }, function (res) {
+                if (res.success) {
+                    $("#step1").hide();
+                    $("#step2").show();
+                    $("#forgotError").text("");
+                    $("#forgotSuccess").text("OTP sent to your email.");
+                } else {
+                    $("#forgotError").text(res.message);
+                }
+            });
+        });
+
+        $("#verifyOtpBtn").click(function () {
+            var otp = $("#otpInput").val();
+            if (otp === "") {
+                $("#forgotError").text("Please enter OTP.");
+                return;
+            }
+            $.post("/Clerk/VerifyOtp", { email: currentEmail, otp: otp }, function (res) {
+                if (res.success) {
+                    $("#step2").hide();
+                    $("#step3").show();
+                    $("#forgotError").text("");
+                    $("#forgotSuccess").text("OTP verified. Enter new password.");
+                } else {
+                    $("#forgotError").text(res.message);
+                }
+            });
+        });
+
+        $("#updatePasswordBtn").click(function () {
+            var newPassword = $("#newPassword").val();
+            if (newPassword === "") {
+                $("#forgotError").text("Please enter a new password.");
+                return;
+            }
+            $.post("/Clerk/UpdatePassword", { email: currentEmail, password: newPassword }, function (res) {
+                if (res.success) {
+                    $("#forgotError").text("");
+                    $("#forgotSuccess").text("Password updated successfully. You can now login.");
+                    setTimeout(function () {
+                        location.reload();
+                    }, 2000);
+                } else {
+                    $("#forgotError").text(res.message);
+                }
+            });
+        });</script>
+}

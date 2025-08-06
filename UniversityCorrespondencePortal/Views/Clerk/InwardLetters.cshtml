@@ -399,16 +399,17 @@
                 const rowSender = row.data('sender')?.toLowerCase() || '';
                 const rowDate = row.data('date');
                 const rowPriority = row.data('priority')?.toLowerCase() || '';
-                const rowStaff = row.data('staff') || '';
+                const rowStaff = row.data('staff')?.toLowerCase() || '';
 
                 const matchSender = !sender || rowSender === sender;
                 const matchPriority = !priority || rowPriority === priority;
-                const matchStaff = !staff || rowStaff.includes(staff);
+                const matchStaff = !staff || rowStaff.split(',').some(name => name.trim().includes(staff));
                 const matchDate = (!from || rowDate >= from) && (!to || rowDate <= to);
 
                 row.toggle(matchSender && matchDate && matchPriority && matchStaff);
             });
         }
+
 
         function clearFilters() {
             $('#filterSenderDept').val('');

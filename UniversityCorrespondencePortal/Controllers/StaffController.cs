@@ -5,6 +5,7 @@ using System.Linq;
 using System.Web.Mvc;
 using UniversityCorrespondencePortal.Models;
 using UniversityCorrespondencePortal.Models.ViewModels;
+using UniversityCorrespondencePortal.Services;
 
 namespace UniversityCorrespondencePortal.Controllers
 {
@@ -13,38 +14,81 @@ namespace UniversityCorrespondencePortal.Controllers
         private readonly UcpDbContext db = new UcpDbContext();
 
         // GET: Staff/Login
-        public ActionResult Login()
-        {
-            return View();
-        }
+        public ActionResult Login() => View();
 
-        // POST: Staff/Login
         [HttpPost]
         public ActionResult Login(string email, string password)
         {
+            email = email?.Trim();
+            password = password?.Trim();
+
             if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
             {
                 ViewBag.Error = "Please enter both email and password.";
                 return View();
             }
 
-            var staff = db.Staffs.FirstOrDefault(s =>
-                s.Email == email && s.PasswordHash == password && s.IsActive
-            );
+            var staff = db.Staffs.FirstOrDefault(s => s.Email == email && s.IsActive);
 
-            if (staff != null)
+            // Plain text password check
+            if (staff != null && staff.PasswordHash == password)
             {
                 Session["StaffID"] = staff.StaffID;
                 Session["StaffName"] = staff.Name;
                 Session["StaffEmail"] = staff.Email;
-
-                return RedirectToAction("Letter", "Staff"); // Change to your actual dashboard
+                return RedirectToAction("Letter", "Staff");
             }
 
             ViewBag.Error = "Invalid email, password, or your account is inactive.";
             return View();
         }
 
+        // OTP storage (static for simplicity)
+        private static Dictionary<string, string> otpStore = new Dictionary<string, string>();
+
+        [HttpPost]
+        public JsonResult SendOtp(string email)
+        {
+            var staff = db.Staffs.FirstOrDefault(s => s.Email == email && s.IsActive);
+            if (staff == null)
+            {
+                return Json(new { success = false, message = "Email not found or account inactive." });
+            }
+
+            string otp = new Random().Next(100000, 999999).ToString();
+            otpStore[email] = otp;
+
+            OptService emailService = new OptService();
+            emailService.SendOtpEmail(email, otp);
+
+            return Json(new { success = true });
+        }
+
+        [HttpPost]
+        public JsonResult VerifyOtp(string email, string otp)
+        {
+            if (otpStore.ContainsKey(email) && otpStore[email] == otp)
+            {
+                return Json(new { success = true });
+            }
+            return Json(new { success = false, message = "Invalid OTP." });
+        }
+
+        [HttpPost]
+        public JsonResult UpdatePassword(string email, string password)
+        {
+            var clerk = db.Clerks.FirstOrDefault(c => c.Email == email && c.IsActive);
+            if (clerk == null)
+            {
+                return Json(new { success = false, message = "User not found." });
+            }
+
+            clerk.PasswordHash = password; // Store plain text password
+            db.SaveChanges();
+
+            otpStore.Remove(email);
+            return Json(new { success = true });
+        }
         public ActionResult Letter(string search, string senderDept, string receiverDept, string priority, DateTime? fromDate, DateTime? toDate)
         {
             int currentStaffId = Convert.ToInt32(Session["StaffID"]);
@@ -167,49 +211,173 @@ namespace UniversityCorrespondencePortal.Controllers
 
 
 
+
+
+
+
+
+
+
+
+
+
+        //public ActionResult Report()
+        //{
+        //    int currentStaffId = Convert.ToInt32(Session["StaffID"]);
+
+        //    var inwardLetters = db.InwardLetters
+        //        .Where(l => l.LetterStaffs.Any(ls => ls.StaffID == currentStaffId))
+        //        .ToList();
+
+        //    var outwardLetters = db.OutwardLetters
+        //        .Where(l => l.StaffID == currentStaffId)
+        //        .ToList();
+
+        //    var inwardGrouped = inwardLetters
+        //        .Where(l => l.DateReceived.HasValue)
+        //        .GroupBy(l => l.DateReceived.Value.Year)
+        //        .Select(g => new { Year = g.Key, Count = g.Count() })
+        //        .ToDictionary(g => g.Year, g => g.Count);
+
+        //    var outwardGrouped = outwardLetters
+        //        .Where(l => l.DateReceived.HasValue)
+        //        .GroupBy(l => l.DateReceived.Value.Year)
+        //        .Select(g => new { Year = g.Key, Count = g.Count() })
+        //        .ToDictionary(g => g.Year, g => g.Count);
+
+        //    var allYears = inwardGrouped.Keys.Union(outwardGrouped.Keys).OrderBy(y => y).ToList();
+
+        //    var yearlyStats = allYears.Select(year => new YearlyLetterStats
+        //    {
+        //        Year = year,
+        //        InwardCount = inwardGrouped.ContainsKey(year) ? inwardGrouped[year] : 0,
+        //        OutwardCount = outwardGrouped.ContainsKey(year) ? outwardGrouped[year] : 0
+        //    }).ToList();
+
+        //    var viewModel = new StaffReportViewModel
+        //    {
+        //        TotalInward = inwardLetters.Count,
+        //        TotalOutward = outwardLetters.Count,
+        //        YearlyStats = yearlyStats
+        //    };
+
+
+        //    return View(viewModel);
+        //}
+
+
+
+
         public ActionResult Report()
+{
+    int staffId = (int)Session["StaffID"];
+
+    var model = new StaffReportViewModel
+    {
+        TotalInward = db.LetterStaffs.Count(l => l.StaffID == staffId && l.LetterID != null),
+        TotalOutward = db.OutwardLetters.Count(l => l.StaffID == staffId)
+    };
+
+    ViewBag.PriorityLabels = new[] { "High", "Medium", "Low", "Urgent" };
+    ViewBag.PriorityCounts = GetPriorityCounts(staffId);
+
+    ViewBag.StatusLabels = new[] { "Open", "Closed", "In Progress", "Pending" };
+    ViewBag.StatusData = GetStatusCounts(staffId);
+
+    var deptData = GetTopDepartments(staffId);
+    ViewBag.SenderDepartments = deptData.Select(d => d.Name).ToList();
+    ViewBag.SenderDepartmentCounts = deptData.Select(d => d.Count).ToList();
+
+    ViewBag.PendingLetters = CountPendingLetters(staffId);
+    ViewBag.RecentLetters = GetRecentLetters(staffId);
+
+    return View(model);
+}
+        private List<int> GetPriorityCounts(int staffId)
         {
-            int currentStaffId = Convert.ToInt32(Session["StaffID"]);
+            var priorities = new[] { "High", "Medium", "Low", "Urgent" };
 
-            var inwardLetters = db.InwardLetters
-                .Where(l => l.LetterStaffs.Any(ls => ls.StaffID == currentStaffId))
-                .ToList();
-
-            var outwardLetters = db.OutwardLetters
-                .Where(l => l.StaffID == currentStaffId)
-                .ToList();
-
-            var inwardGrouped = inwardLetters
-                .Where(l => l.DateReceived.HasValue)
-                .GroupBy(l => l.DateReceived.Value.Year)
-                .Select(g => new { Year = g.Key, Count = g.Count() })
-                .ToDictionary(g => g.Year, g => g.Count);
-
-            var outwardGrouped = outwardLetters
-                .Where(l => l.DateReceived.HasValue)
-                .GroupBy(l => l.DateReceived.Value.Year)
-                .Select(g => new { Year = g.Key, Count = g.Count() })
-                .ToDictionary(g => g.Year, g => g.Count);
-
-            var allYears = inwardGrouped.Keys.Union(outwardGrouped.Keys).OrderBy(y => y).ToList();
-
-            var yearlyStats = allYears.Select(year => new YearlyLetterStats
-            {
-                Year = year,
-                InwardCount = inwardGrouped.ContainsKey(year) ? inwardGrouped[year] : 0,
-                OutwardCount = outwardGrouped.ContainsKey(year) ? outwardGrouped[year] : 0
-            }).ToList();
-
-            var viewModel = new StaffReportViewModel
-            {
-                TotalInward = inwardLetters.Count,
-                TotalOutward = outwardLetters.Count,
-                YearlyStats = yearlyStats
-            };
-
-
-            return View(viewModel);
+            return priorities.Select(priority =>
+                db.LetterStaffs
+                    .Where(ls => ls.StaffID == staffId && ls.InwardLetter.Priority == priority)
+                    .Count()
+            ).ToList();
         }
+
+        private List<int> GetStatusCounts(int staffId)
+        {
+            var statuses = new[] { "High", "Mediam", "Low",  };
+
+            return statuses.Select(status =>
+                db.LetterStaffs
+                    .Where(ls => ls.StaffID == staffId && ls.InwardLetter.Priority == status)
+                    .Count()
+            ).ToList();
+        }
+
+        private List<DepartmentStats> GetTopDepartments(int staffId)
+        {
+            return db.LetterStaffs
+                .Where(ls => ls.StaffID == staffId && ls.InwardLetter.SenderDepartment != null)
+                .GroupBy(ls => ls.InwardLetter.SenderDepartment)
+                .Select(g => new DepartmentStats
+                {
+                    Name = g.Key,
+                    Count = g.Count()
+                })
+                .OrderByDescending(d => d.Count)
+                .Take(6)
+                .ToList();
+        }
+
+        public class DepartmentStats
+        {
+            public string Name { get; set; }
+            public int Count { get; set; }
+        }
+
+        private int CountPendingLetters(int staffId)
+        {
+            return db.LetterStaffs
+                .Count(ls => ls.StaffID == staffId && ls.InwardLetter.Priority == "High");
+        }
+
+        private List<dynamic> GetRecentLetters(int staffId)
+        {
+            return db.LetterStaffs
+                .Where(ls => ls.StaffID == staffId && ls.LetterID != null)
+                .OrderByDescending(ls => ls.LetterID)
+                .Take(10)
+                .Select(ls => new
+                {
+                    LetterNumber = ls.InwardLetter.InwardNumber,
+                    Type = "Inward",
+                    Subject = ls.InwardLetter.Subject,
+                    Department = ls.InwardLetter.SenderDepartment,
+                    Status = ls.InwardLetter.Priority,
+                    DaysOpen = ls.InwardLetter.Priority == "High" ? 0 : 1, // You can replace with logic if needed
+                    StatusClass = ls.InwardLetter.Priority == "High" ? "Low" :
+                                  ls.InwardLetter.Priority == "Mediam" ? "Low" :
+                                  ls.InwardLetter.Priority == "Low" ? "High" : "Mediam"
+                })
+                .ToList<dynamic>();
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         public ActionResult GetReceiverDepartmentChart()
         {
             int currentStaffId = Convert.ToInt32(Session["StaffID"]);

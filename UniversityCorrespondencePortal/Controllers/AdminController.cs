@@ -18,18 +18,91 @@ namespace UniversityCorrespondencePortal.Controllers
         [HttpPost]
         public ActionResult Login(string username, string password)
         {
+            username = username?.Trim();
+            password = password?.Trim();
+
+            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+            {
+                ViewBag.Error = "Please enter both username and password.";
+                return View();
+            }
+
             var admin = db.Admins.FirstOrDefault(a => a.Email == username);
 
-            if (admin != null && admin.PasswordHash == password)
+            if (admin != null && admin.PasswordHash == password) // Plain text comparison
             {
                 Session["AdminID"] = admin.AdminID;
                 TempData["Message"] = $"Welcome {admin.Name}!";
-                return RedirectToAction("Report");
+                return RedirectToAction("Profile");
             }
 
             ViewBag.Error = "Invalid credentials.";
             return View();
         }
+
+
+
+
+
+
+
+
+
+
+
+        public ActionResult Report()
+        {
+            var recentInward = db.InwardLetters
+                .Take(10)
+                .ToList()
+                .Select(i => new
+                {
+                    LetterNumber = i.InwardNumber,
+                    Type = "Inward",
+                    Subject = i.Subject,
+                    Status = "Received",
+                    StatusClass = "success"
+                });
+
+            var recentOutward = db.OutwardLetters
+                .Take(10)
+                .ToList()
+                .Select(o => new
+                {
+                    LetterNumber = o.OutwardNumber,
+                    Type = "Outward",
+                    Subject = o.Subject,
+                    Status = "Dispatched",
+                    StatusClass = "info"
+                });
+
+            var recentLetters = recentInward.Concat(recentOutward)
+                .Take(10)
+                .ToList();
+
+            ViewBag.RecentLetters = recentLetters;
+            ViewBag.TotalDepartments = db.Departments.Count();
+            ViewBag.ActiveStaffCount = db.Staffs.Count(s => s.IsActive);
+            ViewBag.TotalLetters = db.InwardLetters.Count() + db.OutwardLetters.Count();
+            ViewBag.ActiveClerksCount = db.Clerks.Count(c => c.IsActive);
+
+            return View();
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         public ActionResult Logout()
         {
@@ -37,14 +110,14 @@ namespace UniversityCorrespondencePortal.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-        public ActionResult Report()
-        {
-            if (Session["AdminID"] == null)
-                return RedirectToAction("Login");
+        //public ActionResult Report()
+        //{
+        //    if (Session["AdminID"] == null)
+        //        return RedirectToAction("Login");
 
-            ViewBag.ReportMessage = "This is the Admin Reports page. Reports will be shown here.";
-            return View();
-        }
+        //    ViewBag.ReportMessage = "This is the Admin Reports page. Reports will be shown here.";
+        //    return View();
+        //}
 
         public ActionResult Profile()
         {
@@ -136,18 +209,44 @@ namespace UniversityCorrespondencePortal.Controllers
         {
             try
             {
-                staff.PasswordHash = "0000";
-                db.Staffs.Add(staff);
-                db.SaveChanges();
+                var existingStaff = db.Staffs.FirstOrDefault(s =>
+                    s.Email == staff.Email || s.Phone == staff.Phone);
 
-                db.StaffDepartments.Add(new StaffDepartment
+                if (existingStaff != null)
                 {
-                    StaffID = staff.StaffID,
-                    DepartmentID = DepartmentID
-                });
+                    // Check if already linked to this department
+                    bool alreadyAssigned = db.StaffDepartments.Any(sd =>
+                        sd.StaffID == existingStaff.StaffID && sd.DepartmentID == DepartmentID);
 
-                db.SaveChanges();
-                TempData["Message"] = "Staff added successfully.";
+                    if (!alreadyAssigned)
+                    {
+                        db.StaffDepartments.Add(new StaffDepartment
+                        {
+                            StaffID = existingStaff.StaffID,
+                            DepartmentID = DepartmentID
+                        });
+                        db.SaveChanges();
+                        TempData["Message"] = "Staff already exists. Added to selected department.";
+                    }
+                    else
+                    {
+                        TempData["Error"] = "Staff already exists and is already assigned to this department.";
+                    }
+                }
+                else
+                {
+                    staff.PasswordHash = "0000"; // default password
+                    db.Staffs.Add(staff);
+                    db.SaveChanges();
+
+                    db.StaffDepartments.Add(new StaffDepartment
+                    {
+                        StaffID = staff.StaffID,
+                        DepartmentID = DepartmentID
+                    });
+                    db.SaveChanges();
+                    TempData["Message"] = "Staff added successfully.";
+                }
             }
             catch (Exception ex)
             {
@@ -157,30 +256,6 @@ namespace UniversityCorrespondencePortal.Controllers
             return RedirectToAction("AddStaff");
         }
 
-        [HttpPost]
-        public ActionResult UpdateStaff(int StaffID, string Name, string Email, string Phone, string Designation)
-        {
-            try
-            {
-                var staff = db.Staffs.FirstOrDefault(s => s.StaffID == StaffID);
-                if (staff == null)
-                    return HttpNotFound();
-
-                staff.Name = Name;
-                staff.Email = Email;
-                staff.Phone = Phone;
-                staff.Designation = Designation;
-
-                db.SaveChanges();
-                TempData["Message"] = "Staff updated successfully.";
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = "Update failed: " + ex.Message;
-            }
-
-            return RedirectToAction("AddStaff");
-        }
 
         // =========================== CLERK ===========================
 
@@ -383,6 +458,31 @@ namespace UniversityCorrespondencePortal.Controllers
             db.SaveChanges();
             TempData["Message"] = "Department added successfully.";
             return RedirectToAction("AddDepartment");
+        }
+
+        [HttpPost]
+        public ActionResult UpdateStaff(int StaffID, string Name, string Email, string Phone, string Designation)
+        {
+            try
+            {
+                var staff = db.Staffs.FirstOrDefault(s => s.StaffID == StaffID);
+                if (staff == null)
+                    return HttpNotFound();
+
+                staff.Name = Name;
+                staff.Email = Email;
+                staff.Phone = Phone;
+                staff.Designation = Designation;
+
+                db.SaveChanges();
+                TempData["Message"] = "Staff updated successfully.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Update failed: " + ex.Message;
+            }
+
+            return RedirectToAction("AddStaff");
         }
 
         [HttpPost]

@@ -150,38 +150,53 @@
 </div>
 
 <!-- Add Staff Modal -->
+<!-- Add Staff Modal -->
 <div class="modal fade" id="addStaffModal" tabindex="-1" aria-labelledby="addStaffModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form method="post" action="@Url.Action("CreateStaff", "Admin")">
+            <form method="post" action="@Url.Action("CreateStaff", "Admin")" novalidate>
                 <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title" id="addStaffModalLabel">Add New Staff</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label">Staff ID</label>
-                        <input type="number" name="StaffID" class="form-control" required />
-                    </div>
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
                     <div class="col-md-6">
                         <label class="form-label">Name</label>
-                        <input type="text" name="Name" class="form-control" required />
+                        <input type="text" name="Name" class="form-control" required minlength="3"
+                               oninvalid="this.setCustomValidity('Please enter at least 3 characters for Name')"
+                               oninput="this.setCustomValidity('')" />
                     </div>
+
                     <div class="col-md-6">
                         <label class="form-label">Email</label>
-                        <input type="email" name="Email" class="form-control" required />
+                        <input type="email" name="Email" class="form-control" required
+                               pattern="^[a-zA-Z0-9._%+-]+&#64;[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                               oninvalid="this.setCustomValidity('Please enter a valid email address')"
+                               oninput="this.setCustomValidity('')" />
+
                     </div>
+
                     <div class="col-md-6">
                         <label class="form-label">Phone</label>
-                        <input type="text" name="Phone" class="form-control" required />
+                        <input type="text" name="Phone" class="form-control" required pattern="^[0-9]{10}$"
+                               oninvalid="this.setCustomValidity('Please enter a valid 10-digit phone number')"
+                               oninput="this.setCustomValidity('')" />
                     </div>
+
                     <div class="col-md-6">
                         <label class="form-label">Designation</label>
-                        <input type="text" name="Designation" class="form-control" required />
+                        <input type="text" name="Designation" class="form-control" required minlength="2"
+                               oninvalid="this.setCustomValidity('Please enter a valid designation')"
+                               oninput="this.setCustomValidity('')" />
                     </div>
+
                     <div class="col-md-6">
                         <label class="form-label">Department</label>
-                        <select name="DepartmentID" class="form-control" required>
+                        <select name="DepartmentID" class="form-control" required
+                                oninvalid="this.setCustomValidity('Please select a department')"
+                                oninput="this.setCustomValidity('')">
                             <option value="">-- Select Department --</option>
                             @foreach (var dept in ViewBag.DepartmentList as List<UniversityCorrespondencePortal.Models.Department>)
                             {
@@ -189,9 +204,10 @@
                             }
                         </select>
                     </div>
+
                     <div class="col-md-6">
                         <label class="form-label">Status</label>
-                        <select name="IsActive" class="form-control">
+                        <select name="IsActive" class="form-control" required>
                             <option value="true" selected>Active</option>
                             <option value="false">Inactive</option>
                         </select>
@@ -246,4 +262,23 @@
             applyFilters(); // Reset view
         }
     </script>
+
+    <!-- Bootstrap 5 validation script -->
+    <script>
+        (() => {
+            'use strict';
+            const forms = document.querySelectorAll('form');
+
+            Array.from(forms).forEach(form => {
+                form.addEventListener('submit', event => {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        })();
+    </script>
 }
+

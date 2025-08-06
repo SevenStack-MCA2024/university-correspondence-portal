@@ -15,7 +15,6 @@ namespace UniversityCorrespondencePortal.Models
         public DbSet<StaffDepartment> StaffDepartments { get; set; }
         public DbSet<InwardLetter> InwardLetters { get; set; }
         public DbSet<OutwardLetter> OutwardLetters { get; set; }
-        public DbSet<LetterSerialTracker> LetterSerialTrackers { get; set; }
         public DbSet<Admin> Admins { get; set; }
         public DbSet<InwardLetterSerialTracker> InwardLetterSerialTrackers { get; set; }
         public DbSet<OutwardLetterSerialTracker> OutwardLetterSerialTrackers { get; set; }
@@ -49,6 +48,15 @@ namespace UniversityCorrespondencePortal.Models
                 .WillCascadeOnDelete(false); // Optional
 
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Staff>()
+    .HasIndex(s => s.Email)
+    .IsUnique();
+
+            modelBuilder.Entity<Staff>()
+                .HasIndex(s => s.Phone)
+                .IsUnique();
+
         }
     }
 }

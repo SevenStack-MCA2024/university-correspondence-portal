@@ -56,15 +56,28 @@
             if (clerk.ClerkID == editId)
             {
                 <tr>
-                    <form method="post" action="@Url.Action("UpdateClerk", "Admin")">
+                    <form method="post" action="@Url.Action("UpdateClerk", "Admin")" novalidate>
                         @Html.AntiForgeryToken()
                     <td>
                         @clerk.ClerkID
                         <input type="hidden" name="ClerkID" value="@clerk.ClerkID" />
                     </td>
-                    <td><input type="text" name="Name" class="form-control" value="@clerk.Name" required /></td>
-                    <td><input type="email" name="Email" class="form-control" value="@clerk.Email" required /></td>
-                    <td><input type="text" name="Phone" class="form-control" value="@clerk.Phone" required /></td>
+                    <td>
+                        <input type="text" name="Name" class="form-control" value="@clerk.Name" required minlength="3"
+                               oninvalid="this.setCustomValidity('Please enter at least 3 characters')"
+                               oninput="this.setCustomValidity('')" />
+                    </td>
+                    <td>
+                        <input type="email" name="Email" class="form-control" value="@clerk.Email" required
+                               pattern="^[a-zA-Z0-9._%+-]+&#64;[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                               oninvalid="this.setCustomValidity('Please enter a valid email address')"
+                               oninput="this.setCustomValidity('')" />
+                    </td>
+                    <td>
+                        <input type="text" name="Phone" class="form-control" value="@clerk.Phone" required pattern="^[0-9]{10}$"
+                               oninvalid="this.setCustomValidity('Please enter a valid 10-digit phone number')"
+                               oninput="this.setCustomValidity('')" />
+                    </td>
                     <td>@clerk.DepartmentName</td>
                     <td>@(clerk.IsActive ? "Active" : "Inactive")</td>
                     <td>
@@ -73,6 +86,7 @@
                     </td>
                     </form>
                 </tr>
+
             }
             else
             {
@@ -109,9 +123,10 @@
 </table>
 
 <!-- Add Clerk Modal -->
+<!-- Add Clerk Modal -->
 <div class="modal fade" id="addClerkModal" tabindex="-1" aria-labelledby="addClerkModalLabel" aria-hidden="true">
     <div class="modal-dialog">
-        <form method="post" action="@Url.Action("CreateClerk", "Admin")" class="modal-content">
+        <form method="post" action="@Url.Action("CreateClerk", "Admin")" class="modal-content" novalidate>
             @Html.AntiForgeryToken()
             <div class="modal-header">
                 <h5 class="modal-title" id="addClerkModalLabel">Add New Clerk</h5>
@@ -120,23 +135,34 @@
             <div class="modal-body">
                 <div class="mb-3">
                     <label for="ClerkID" class="form-label">Clerk ID</label>
-                    <input type="text" name="ClerkID" class="form-control" required />
+                    <input type="text" name="ClerkID" class="form-control" required
+                           oninvalid="this.setCustomValidity('Please enter Clerk ID')"
+                           oninput="this.setCustomValidity('')" />
                 </div>
                 <div class="mb-3">
                     <label for="Name" class="form-label">Name</label>
-                    <input type="text" name="Name" class="form-control" required />
+                    <input type="text" name="Name" class="form-control" required minlength="3"
+                           oninvalid="this.setCustomValidity('Please enter at least 3 characters')"
+                           oninput="this.setCustomValidity('')" />
                 </div>
                 <div class="mb-3">
                     <label for="Email" class="form-label">Email</label>
-                    <input type="email" name="Email" class="form-control" required />
+                    <input type="email" name="Email" class="form-control" required
+                           pattern="^[a-zA-Z0-9._%+-]+&#64;[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                           oninvalid="this.setCustomValidity('Please enter a valid email address')"
+                           oninput="this.setCustomValidity('')" />
                 </div>
                 <div class="mb-3">
                     <label for="Phone" class="form-label">Phone</label>
-                    <input type="text" name="Phone" class="form-control" required />
+                    <input type="text" name="Phone" class="form-control" required pattern="^[0-9]{10}$"
+                           oninvalid="this.setCustomValidity('Please enter a valid 10-digit phone number')"
+                           oninput="this.setCustomValidity('')" />
                 </div>
                 <div class="mb-3">
                     <label for="DepartmentID" class="form-label">Department</label>
-                    <select name="DepartmentID" class="form-select" required>
+                    <select name="DepartmentID" class="form-select" required
+                            oninvalid="this.setCustomValidity('Please select a department')"
+                            oninput="this.setCustomValidity('')">
                         <option value="">-- Select Department --</option>
                         @foreach (var dept in ViewBag.DepartmentList as List<SelectListItem>)
                         {
@@ -152,9 +178,9 @@
         </form>
     </div>
 </div>
-
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <script>
         function applyFilters() {
             var searchTerm = document.getElementById("searchInput").value.toLowerCase();
@@ -186,4 +212,24 @@
             applyFilters();
         }
     </script>
+
+    <!-- Bootstrap 5 Frontend Validation Script -->
+    <script>
+        (() => {
+            'use strict';
+            const forms = document.querySelectorAll('form');
+
+            Array.from(forms).forEach(form => {
+                form.addEventListener('submit', event => {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        })();
+    </script>
 }
+
+

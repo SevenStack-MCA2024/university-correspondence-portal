@@ -9,16 +9,65 @@
     <div class="col-md-8">
         <p class="lead text-center">Watch these tutorials to understand how to use the University Correspondence Portal:</p>
 
+        <!-- Tutorial Video 1 -->
         <div class="embed-responsive embed-responsive-16by9 mb-4">
-            <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/VIDEO_ID_1" allowfullscreen></iframe>
+            <div id="player1"></div>
         </div>
 
+        <!-- Tutorial Video 2 -->
         <div class="embed-responsive embed-responsive-16by9 mb-4">
-            <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/VIDEO_ID_2" allowfullscreen></iframe>
+            <div id="player2"></div>
         </div>
 
+        <!-- Tutorial Video 3 -->
         <div class="embed-responsive embed-responsive-16by9 mb-4">
-            <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/VIDEO_ID_3" allowfullscreen></iframe>
+            <div id="player3"></div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script>
+        var players = [];
+
+        function onYouTubeIframeAPIReady() {
+            players.push(new YT.Player('player1', {
+                height: '360',
+                width: '640',
+                videoId: 'UFy1-eRYTqk',
+                events: {
+                    'onStateChange': onPlayerStateChange
+                }
+            }));
+
+            players.push(new YT.Player('player2', {
+                height: '360',
+                width: '640',
+                videoId: 'jpsB18MP4hQ',
+                events: {
+                    'onStateChange': onPlayerStateChange
+                }
+            }));
+
+            players.push(new YT.Player('player3', {
+                height: '360',
+                width: '640',
+                videoId: 'B8Yc37IbWu0',
+                events: {
+                    'onStateChange': onPlayerStateChange
+                }
+            }));
+        }
+
+        function onPlayerStateChange(event) {
+            if (event.data == YT.PlayerState.PLAYING) {
+                players.forEach(function (player) {
+                    if (player !== event.target && player.getPlayerState() == YT.PlayerState.PLAYING) {
+                        player.pauseVideo();
+                    }
+                });
+            }
+        }
+    </script>
+}
