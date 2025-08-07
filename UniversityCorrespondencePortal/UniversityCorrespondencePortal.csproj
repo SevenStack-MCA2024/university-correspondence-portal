@@ -134,9 +134,9 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202508060626530_createschema.cs" />
-    <Compile Include="Migrations\202508060626530_createschema.Designer.cs">
-      <DependentUpon>202508060626530_createschema.cs</DependentUpon>
+    <Compile Include="Migrations\202508071332052_createschema.cs" />
+    <Compile Include="Migrations\202508071332052_createschema.Designer.cs">
+      <DependentUpon>202508071332052_createschema.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Admin.cs" />
@@ -147,11 +147,13 @@
     <Compile Include="Models\LetterStaff.cs" />
     <Compile Include="Models\OutwardLetter.cs" />
     <Compile Include="Models\OutwardLetterSerialTracker.cs" />
+    <Compile Include="Models\OutwardLetterStaff .cs" />
     <Compile Include="Models\Staff.cs" />
     <Compile Include="Models\StaffDepartment.cs" />
     <Compile Include="Models\UcpDbContext.cs" />
     <Compile Include="Models\ViewModels\InwardLetterViewModel.cs" />
     <Compile Include="Models\ViewModels\ClerkViewModel.cs" />
+    <Compile Include="Models\ViewModels\OutwardLetterPageViewModel.cs" />
     <Compile Include="Models\ViewModels\OutwardLetterViewModel.cs" />
     <Compile Include="Models\ViewModels\StaffLetterViewModel.cs" />
     <Compile Include="Models\ViewModels\StaffProfileViewModel.cs" />
@@ -235,9 +237,7 @@
     <Content Include="Views\Shared\_StaffLayout.cshtml" />
     <Content Include="Views\Home\About.cshtml" />
     <Content Include="Views\Home\Help.cshtml" />
-    <Content Include="Views\Clerk\OutwardLetters.cshtml" />
-    <Content Include="Views\Clerk\_OutwardAddModal.cshtml" />
-    <Content Include="Views\Clerk\_OutwardEditModal.cshtml" />
+    <Content Include="Views\Clerk\OutwardLetter.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap.rtl.min.css.map" />
@@ -267,9 +267,12 @@
     <Content Include="Scripts\jquery-3.7.0.min.map" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202508060626530_createschema.resx">
-      <DependentUpon>202508060626530_createschema.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202508071332052_createschema.resx">
+      <DependentUpon>202508071332052_createschema.cs</DependentUpon>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Views\OutwardLetter\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

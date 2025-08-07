@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Web;
 
 namespace UniversityCorrespondencePortal.Models
 {
@@ -25,9 +22,7 @@ namespace UniversityCorrespondencePortal.Models
         [ForeignKey("DepartmentID")]
         public virtual Department Department { get; set; }
 
-        // Optional: link to OutwardLetter if you want
         [ForeignKey("LetterID")]
         public virtual OutwardLetter OutwardLetter { get; set; }
     }
-
 }

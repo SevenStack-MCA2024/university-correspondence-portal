@@ -42,6 +42,7 @@ namespace UniversityCorrespondencePortal.Models
         // Navigation
         public virtual ICollection<StaffDepartment> StaffDepartments { get; set; }
         public virtual ICollection<LetterStaff> LetterStaffs { get; set; }
-        public virtual ICollection<OutwardLetter> OutwardLetters { get; set; }
+        public virtual ICollection<OutwardLetterStaff> OutwardLetterStaffs { get; set; }
+
     }
 }

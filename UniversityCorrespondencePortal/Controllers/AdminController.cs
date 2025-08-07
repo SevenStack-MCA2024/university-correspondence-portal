@@ -64,27 +64,7 @@ namespace UniversityCorrespondencePortal.Controllers
                     StatusClass = "success"
                 });
 
-            var recentOutward = db.OutwardLetters
-                .Take(10)
-                .ToList()
-                .Select(o => new
-                {
-                    LetterNumber = o.OutwardNumber,
-                    Type = "Outward",
-                    Subject = o.Subject,
-                    Status = "Dispatched",
-                    StatusClass = "info"
-                });
-
-            var recentLetters = recentInward.Concat(recentOutward)
-                .Take(10)
-                .ToList();
-
-            ViewBag.RecentLetters = recentLetters;
-            ViewBag.TotalDepartments = db.Departments.Count();
-            ViewBag.ActiveStaffCount = db.Staffs.Count(s => s.IsActive);
-            ViewBag.TotalLetters = db.InwardLetters.Count() + db.OutwardLetters.Count();
-            ViewBag.ActiveClerksCount = db.Clerks.Count(c => c.IsActive);
+            
 
             return View();
         }
