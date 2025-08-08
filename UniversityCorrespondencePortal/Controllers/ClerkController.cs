@@ -31,15 +31,57 @@ namespace UniversityCorrespondencePortal.Controllers
 
             var clerk = db.Clerks.FirstOrDefault(c => c.Email == username && c.IsActive);
 
-            if (clerk != null && clerk.PasswordHash == password) // Plain-text password comparison
+            if (clerk != null && PasswordHelper.VerifyPassword(password, clerk.PasswordHash))
             {
+                if (clerk.MustResetPassword)
+                {
+                    Session["ClerkID"] = clerk.ClerkID;
+                    return RedirectToAction("ResetPassword", "Clerk");
+                }
+
                 Session["ClerkID"] = clerk.ClerkID;
                 Session["ClerkName"] = clerk.Name;
                 Session["DepartmentID"] = clerk.DepartmentID;
                 return RedirectToAction("InwardLetters");
             }
 
+
+
             ViewBag.Error = "Invalid username, password, or your account is inactive.";
+            return View();
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ResetPassword(ResetPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            string clerkId = Session["ClerkID"]?.ToString();
+            if (string.IsNullOrEmpty(clerkId))
+                return RedirectToAction("Login");
+
+            var clerk = db.Clerks.Find(clerkId);
+            if (clerk == null)
+                return RedirectToAction("Login");
+
+            // Hash new password
+            clerk.PasswordHash = PasswordHelper.HashPassword(model.NewPassword);
+            clerk.MustResetPassword = false; // ✅ no longer need to reset
+
+            db.SaveChanges();
+
+            TempData["Message"] = "Password reset successfully.";
+            return RedirectToAction("InwardLetters");
+        }
+
+        [HttpGet]
+        public ActionResult ResetPassword()
+        {
+            // Optionally check session
+            if (Session["ClerkID"] == null)
+                return RedirectToAction("Login");
+
             return View();
         }
 
@@ -616,16 +658,175 @@ namespace UniversityCorrespondencePortal.Controllers
             return RedirectToAction("InwardLetters");
         }
 
+        //public ActionResult OutwardLetter()
+        //{
+        //    if (Session["DepartmentID"] == null)
+        //        return RedirectToAction("Login");
+
+        //    string deptId = Session["DepartmentID"].ToString();
+        //        var deptName = db.Departments
+        //             .Where(d => d.DepartmentID == deptId)
+        //             .Select(d => d.DepartmentName)
+        //             .FirstOrDefault();
+
+        //    ViewBag.SenderDepartment = deptName; ;
+
+
+        //    // 📨 Fetch outward letters of the logged-in department
+        //    var letters = db.OutwardLetters
+        //        .Where(l => l.DepartmentID == deptId)
+        //        .OrderByDescending(l => l.Date)
+        //        .ToList();
+
+        //    // 👥 Load staff of this department via StaffDepartments
+        //    var staffList = db.StaffDepartments
+        //        .Where(sd => sd.DepartmentID == deptId)
+        //        .Select(sd => sd.Staff)
+        //        .Distinct()
+        //        .ToList();
+
+        //    // 🏢 Load all departments
+        //    var departmentList = db.Departments.ToList();
+
+        //    // 📄 Prepare ViewModel
+        //    var model = new OutwardLetterPageViewModel
+        //    {
+        //        NewLetter = new OutwardLetterViewModel
+        //        {
+        //            DepartmentID = deptId,
+        //            SenderDepartment = Session["DepartmentName"]?.ToString()
+        //        },
+        //        OutwardLetters = letters
+        //    };
+
+        //    ViewBag.StaffList = staffList;
+        //    ViewBag.DepartmentList = departmentList;
+
+        //    return View("OutwardLetter", model);
+        //}
+
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public ActionResult CreateOutwardLetter(OutwardLetterViewModel model)
+        //{
+        //    if (Session["DepartmentID"] == null)
+        //        return RedirectToAction("Login");
+
+        //    if (!ModelState.IsValid)
+        //        return RedirectToAction("OutwardLetter");
+
+        //    string deptId = Session["DepartmentID"].ToString();
+        //    string todayFormatted = DateTime.Now.ToString("yyyy/MM/dd");
+        //    int nextSerial = 1;
+
+        //    // 🔁 Get and update tracker
+        //    var existingTracker = db.OutwardLetterSerialTrackers.FirstOrDefault(t => t.DepartmentID == deptId && t.Date == DateTime.Today);
+        //    if (existingTracker != null && int.TryParse(existingTracker.LastSerialNumber, out int lastSerial))
+        //    {
+        //        nextSerial = lastSerial + 1;
+        //        db.OutwardLetterSerialTrackers.Remove(existingTracker);
+        //        db.SaveChanges();
+        //    }
+
+        //    string paddedSerial = nextSerial.ToString("D3");
+        //    string outwardNumber = $"{deptId}-OUT-{todayFormatted}-{paddedSerial}";
+        //    var staff = db.Staffs.FirstOrDefault(s => s.StaffID == model.AssignedStaffID);
+        //    string senderName = staff != null ? staff.Name : "Unknown";
+
+
+        //    // 📄 Create new outward letter
+        //    var letter = new OutwardLetter
+        //    {
+        //        LetterNo = model.LetterNo,
+        //        OutwardNumber = outwardNumber,
+        //        Date = DateTime.Now.Date,
+        //        Time = DateTime.Now.TimeOfDay,
+        //        DeliveryMode = model.DeliveryMode,
+        //        ReferenceID = model.ReferenceID,
+        //        Subject = model.Subject,
+        //        Remarks = model.Remarks,
+        //        Priority = model.Priority,
+        //        SenderDepartment = db.Departments
+        // .Where(d => d.DepartmentID == deptId)
+        // .Select(d => d.DepartmentName)
+        // .FirstOrDefault(),
+        //        SenderName = senderName,
+        //        ReceiverDepartment = model.ReceiverDepartment == "Other" ? model.ReceiverDepartmentOther : model.ReceiverDepartment,
+        //        ReceiverName = model.ReceiverName,
+        //        DepartmentID = deptId
+        //    };
+
+
+        //    db.OutwardLetters.Add(letter);
+        //    db.SaveChanges();
+
+        //    // 📌 Save new tracker
+        //    var newTracker = new OutwardLetterSerialTracker
+        //    {
+        //        DepartmentID = deptId,
+        //        Date = DateTime.Today,
+        //        LastSerialNumber = nextSerial.ToString()
+        //    };
+        //    db.OutwardLetterSerialTrackers.Add(newTracker);
+        //    db.SaveChanges();
+
+        //    // Save single staff
+        //    db.OutwardLetterStaffs.Add(new OutwardLetterStaff
+        //    {
+        //        LetterID = letter.LetterID,
+        //        StaffID = model.AssignedStaffID
+        //    });
+        //    db.SaveChanges();
+
+        //    // Send email to that staff
+
+
+        //    if (staff != null && !string.IsNullOrEmpty(staff.Email))
+        //    {
+        //        var emailService = new EmailService();
+        //        string subject = "New Outward Letter Assigned";
+        //        string body = $"Dear {staff.Name},<br/><br/>You have been assigned as the sender for Letter No: <strong>{letter.LetterNo}</strong>.<br/>Subject: {letter.Subject}<br/>Please take note.<br/><br/>Regards,<br/>University Portal";
+        //        emailService.SendEmail(staff.Email, subject, body);
+        //    }
+
+
+        //    TempData["OutwardSuccess"] = true;
+        //    return RedirectToAction("OutwardLetter");
+        //}
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public ActionResult EditOutwardLetter(OutwardLetter model)
+        //{
+        //    if (ModelState.IsValid)
+        //    {
+        //        var existing = db.OutwardLetters.Find(model.LetterID);
+        //        if (existing != null)
+        //        {
+        //            existing.DeliveryMode = model.DeliveryMode;
+        //            existing.ReferenceID = model.ReferenceID;
+        //            existing.Remarks = model.Remarks;
+        //            existing.ReceiverDepartment = model.ReceiverDepartment;
+        //            existing.ReceiverName = model.ReceiverName;
+
+        //            db.SaveChanges();
+        //            TempData["OutwardSuccess"] = "Outward letter updated.";
+        //        }
+        //    }
+
+        //    return RedirectToAction("OutwardLetter");
+        //}
+
+        //-----------------------------Outward Letter methods -------------------------------
         public ActionResult OutwardLetter()
         {
             if (Session["DepartmentID"] == null)
                 return RedirectToAction("Login");
 
             string deptId = Session["DepartmentID"].ToString();
-                var deptName = db.Departments
-                     .Where(d => d.DepartmentID == deptId)
-                     .Select(d => d.DepartmentName)
-                     .FirstOrDefault();
+            var deptName = db.Departments
+                 .Where(d => d.DepartmentID == deptId)
+                 .Select(d => d.DepartmentName)
+                 .FirstOrDefault();
 
             ViewBag.SenderDepartment = deptName; ;
 
@@ -662,6 +863,46 @@ namespace UniversityCorrespondencePortal.Controllers
 
             return View("OutwardLetter", model);
         }
+
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult UpdateOutwardLetterInline(OutwardLetter updated)
+        {
+            if (updated == null || updated.LetterID <= 0)
+                return Json(new { success = false, message = "Invalid data" });
+
+            var letter = db.OutwardLetters.FirstOrDefault(l => l.LetterID == updated.LetterID);
+            if (letter == null)
+                return Json(new { success = false, message = "Letter not found" });
+
+            // Update fields
+            letter.LetterNo = updated.LetterNo;
+            letter.SenderName = updated.SenderName;
+            letter.ReceiverName = updated.ReceiverName;
+            letter.ReceiverDepartment = updated.ReceiverDepartment;
+            letter.ReferenceID = updated.ReferenceID;
+
+            db.SaveChanges();
+
+            return Json(new
+            {
+                success = true,
+                data = new
+                {
+                    letter.LetterNo,
+                    letter.SenderName,
+                    letter.ReceiverName,
+                    letter.ReceiverDepartment,
+                    letter.ReferenceID
+                }
+            });
+        }
+
+
+
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -737,7 +978,7 @@ namespace UniversityCorrespondencePortal.Controllers
             db.SaveChanges();
 
             // Send email to that staff
-         
+
 
             if (staff != null && !string.IsNullOrEmpty(staff.Email))
             {
@@ -751,29 +992,5 @@ namespace UniversityCorrespondencePortal.Controllers
             TempData["OutwardSuccess"] = true;
             return RedirectToAction("OutwardLetter");
         }
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult EditOutwardLetter(OutwardLetter model)
-        {
-            if (ModelState.IsValid)
-            {
-                var existing = db.OutwardLetters.Find(model.LetterID);
-                if (existing != null)
-                {
-                    existing.DeliveryMode = model.DeliveryMode;
-                    existing.ReferenceID = model.ReferenceID;
-                    existing.Remarks = model.Remarks;
-                    existing.ReceiverDepartment = model.ReceiverDepartment;
-                    existing.ReceiverName = model.ReceiverName;
-
-                    db.SaveChanges();
-                    TempData["OutwardSuccess"] = "Outward letter updated.";
-                }
-            }
-
-            return RedirectToAction("OutwardLetter");
-        }
-
-
     }
 }

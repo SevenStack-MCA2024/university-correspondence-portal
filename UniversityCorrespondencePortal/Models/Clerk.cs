@@ -34,8 +34,9 @@
 
             public bool IsActive { get; set; }
 
+        public bool MustResetPassword { get; set; } = true;
 
-            [Required]
+        [Required]
             [MaxLength(10)]
             public string DepartmentID { get; set; }
 

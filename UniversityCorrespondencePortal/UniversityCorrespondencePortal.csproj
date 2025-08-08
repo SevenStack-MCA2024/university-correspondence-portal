@@ -156,6 +156,7 @@
     <Compile Include="Models\ViewModels\ClerkViewModel.cs" />
     <Compile Include="Models\ViewModels\OutwardLetterPageViewModel.cs" />
     <Compile Include="Models\ViewModels\OutwardLetterViewModel.cs" />
+    <Compile Include="Models\ViewModels\ResetPasswordViewModel.cs" />
     <Compile Include="Models\ViewModels\StaffLetterViewModel.cs" />
     <Compile Include="Models\ViewModels\StaffProfileViewModel.cs" />
     <Compile Include="Models\ViewModels\StaffReportViewModel.cs" />
@@ -240,6 +241,7 @@
     <Content Include="Views\Home\Help.cshtml" />
     <Content Include="Views\Clerk\OutwardLetter.cshtml" />
     <Content Include="Views\Staff\ResetPassword.cshtml" />
+    <Content Include="Views\Clerk\ResetPassword.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap.rtl.min.css.map" />

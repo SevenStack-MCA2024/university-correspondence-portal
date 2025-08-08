@@ -7,6 +7,7 @@ namespace UniversityCorrespondencePortal.Models
         public UcpDbContext()
             : base("name=UcpDbConnection") // This name should match your connection string in Web.config
         {
+            Database.SetInitializer<UcpDbContext>(null);
         }
         public DbSet<OutwardLetter> OutwardLetters { get; set; }
         public DbSet<OutwardLetterStaff> OutwardLetterStaffs { get; set; }

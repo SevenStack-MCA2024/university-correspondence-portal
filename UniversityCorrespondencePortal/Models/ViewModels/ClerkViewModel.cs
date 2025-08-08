@@ -13,5 +13,7 @@ namespace UniversityCorrespondencePortal.Models.ViewModels
         public string Phone { get; set; }
         public string DepartmentName { get; set; } // For display
         public bool IsActive { get; set; }
+        public bool MustResetPassword { get; set; } = true;
+
     }
 }
