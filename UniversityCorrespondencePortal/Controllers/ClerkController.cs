@@ -1,15 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Web.Mvc;
 using UniversityCorrespondencePortal.Models;
 using UniversityCorrespondencePortal.Models.ViewModels;
 using UniversityCorrespondencePortal.Services;
-
+using UniversityCorrespondencePortal.ViewModels;
 
 namespace UniversityCorrespondencePortal.Controllers
 {
+
     public class ClerkController : Controller
     {
         private readonly UcpDbContext db = new UcpDbContext();
@@ -126,164 +129,11 @@ namespace UniversityCorrespondencePortal.Controllers
 
 
 
-        public ActionResult Report()
-            {
-                if (Session["ClerkID"] == null || Session["DepartmentID"] == null)
-                    return RedirectToAction("Login");
 
-                string departmentId = Session["DepartmentID"].ToString();
-                var department = db.Departments.Find(departmentId);
 
-                // Summary statistics
-                ViewBag.DepartmentName = department?.DepartmentName ?? "Unknown Department";
-                ViewBag.TotalStaff = db.StaffDepartments.Count(sd => sd.DepartmentID == departmentId);
 
-                var currentMonth = DateTime.Now.Month;
-                var currentYear = DateTime.Now.Year;
-                ViewBag.LettersThisMonth = db.InwardLetters.Count(l =>
-                    l.ReceiverDepartment == departmentId &&
-                    l.DateReceived.Value.Month == currentMonth &&
-                    l.DateReceived.Value.Year == currentYear) +
-                    db.OutwardLetters.Count(o =>
-                        o.DepartmentID == departmentId &&
-                        o.DateReceived.Value.Month == currentMonth &&
-                        o.DateReceived.Value.Year == currentYear);
 
-                // Calculate average processing time (assuming completion date exists)
-                var processedInward = db.InwardLetters
-                    .Where(l => l.ReceiverDepartment == departmentId && l.DateReceived.HasValue)
-                    .ToList();
 
-                double avgDays = processedInward.Any() ?
-                    processedInward.Average(l => (DateTime.Now - l.DateReceived.Value).TotalDays) : 0;
-                ViewBag.AvgProcessingTime = Math.Round(avgDays, 1);
-
-                ViewBag.PendingLetters = db.InwardLetters.Count(l =>
-                    l.ReceiverDepartment == departmentId &&
-                    l.LetterStaffs.Any() &&
-                    !l.LetterStaffs.All(ls => /* Some completion condition */ false));
-
-                // Letters by staff member
-                var staffInDepartment = db.StaffDepartments
-                    .Where(sd => sd.DepartmentID == departmentId)
-                    .Select(sd => sd.Staff)
-                    .ToList();
-
-                ViewBag.StaffNames = staffInDepartment.Select(s => s.Name).ToList();
-                ViewBag.LettersByStaff = staffInDepartment
-                    .Select(s => s.LetterStaffs.Count(ls => ls.InwardLetter.ReceiverDepartment == departmentId))
-                    .ToList();
-
-                // Monthly data
-                var months = Enumerable.Range(1, 12).Select(i =>
-                    new DateTime(DateTime.Now.Year, i, 1).ToString("MMM")).ToList();
-                ViewBag.Months = months;
-
-                ViewBag.LettersByMonth = Enumerable.Range(1, 12).Select(i =>
-                    db.InwardLetters.Count(l => l.ReceiverDepartment == departmentId &&
-                        l.DateReceived.Value.Month == i &&
-                        l.DateReceived.Value.Year == DateTime.Now.Year) +
-                    db.OutwardLetters.Count(o => o.DepartmentID == departmentId &&
-                        o.DateReceived.Value.Month == i &&
-                        o.DateReceived.Value.Year == DateTime.Now.Year)
-                ).ToList();
-
-                // Letter type percentages
-                int totalInward = db.InwardLetters.Count(l => l.ReceiverDepartment == departmentId);
-                int totalOutward = db.OutwardLetters.Count(o => o.DepartmentID == departmentId);
-                int totalLetters = totalInward + totalOutward;
-                ViewBag.TotalInward = totalInward;
-                ViewBag.TotalOutward = totalOutward;
-                ViewBag.InwardPercentage = totalLetters > 0 ? (totalInward * 100 / totalLetters) : 0;
-                ViewBag.OutwardPercentage = totalLetters > 0 ? (totalOutward * 100 / totalLetters) : 0;
-
-                // Priority distribution
-                ViewBag.PriorityLabels = new List<string> { "High", "Medium", "Low", "Urgent" };
-                ViewBag.PriorityData = new List<int> {
-            db.InwardLetters.Count(l => l.ReceiverDepartment == departmentId && l.Priority == "High"),
-            db.InwardLetters.Count(l => l.ReceiverDepartment == departmentId && l.Priority == "Medium"),
-            db.InwardLetters.Count(l => l.ReceiverDepartment == departmentId && l.Priority == "Low"),
-            db.InwardLetters.Count(l => l.ReceiverDepartment == departmentId && l.Priority == "Urgent")
-        };
-
-                // Status distribution (you'll need to implement status tracking)
-                ViewBag.StatusLabels = new List<string> { "New", "In Progress", "Completed", "Pending" };
-                ViewBag.StatusData = new List<int> {
-            db.InwardLetters.Count(l => l.ReceiverDepartment == departmentId /* && status == New */),
-            db.InwardLetters.Count(l => l.ReceiverDepartment == departmentId /* && status == In Progress */),
-            db.InwardLetters.Count(l => l.ReceiverDepartment == departmentId /* && status == Completed */),
-            db.InwardLetters.Count(l => l.ReceiverDepartment == departmentId /* && status == Pending */)
-        };
-
-                // Sender departments
-                var senderDepts = db.InwardLetters
-                    .Where(l => l.ReceiverDepartment == departmentId)
-                    .GroupBy(l => l.SenderDepartment)
-                    .OrderByDescending(g => g.Count())
-                    .Take(5)
-                    .ToList();
-
-                ViewBag.SenderDepartments = senderDepts.Select(g => g.Key).ToList();
-                ViewBag.SenderDepartmentCounts = senderDepts.Select(g => g.Count()).ToList();
-
-                // Processing time trends (last 6 months)
-                var processingMonths = Enumerable.Range(0, 6)
-                    .Select(i => DateTime.Now.AddMonths(-i).ToString("MMM yyyy"))
-                    .Reverse()
-                    .ToList();
-
-                ViewBag.ProcessingTimeMonths = processingMonths;
-                ViewBag.ProcessingTimeData = Enumerable.Range(0, 6)
-                    .Select(i => {
-                        var month = DateTime.Now.AddMonths(-i).Month;
-                        var year = DateTime.Now.AddMonths(-i).Year;
-                        var letters = db.InwardLetters
-                            .Where(l => l.ReceiverDepartment == departmentId &&
-                                        l.DateReceived.Value.Month == month &&
-                                        l.DateReceived.Value.Year == year)
-                            .ToList();
-                        return letters.Any() ?
-                            letters.Average(l => (DateTime.Now - l.DateReceived.Value).TotalDays) : 0;
-                    })
-                    .Reverse()
-                    .ToList();
-
-            // Recent activity
-            String departmentID = (string)(Session["DepartmentID"]);
-
-            var inwardLetters = db.InwardLetters
-                .Where(l => l.ReceiverDepartment == departmentId)
-                .OrderByDescending(l => l.DateReceived)
-                .Take(10)
-                .Select(l => new InwardLetter
-                {
-                    LetterStaffs = l.LetterStaffs,
-                    Priority = "High",
-                    Subject = l.Subject,
-                    SenderName = string.Join(", ", l.LetterStaffs.Select(ls => ls.Staff.Name)),
-                    DateReceived = l.DateReceived,
-                    InwardNumber = l.Priority ?? "High",
-                    
-                });
-
-            var outwardLetters = db.OutwardLetters
-                .Where(o => o.DepartmentID == departmentId)
-                .OrderByDescending(o => o.DateReceived)
-                .Take(10)
-                .Select(o => new OutwardLetterSerialTracker
-                {
-                    
-                    
-              
-                    DepartmentID = o.Staff != null ? o.Staff.Name : "Unassigned",
-                  
-                });
-
-           
-
-            return View();
-            }
- 
 
 
 
@@ -718,7 +568,7 @@ namespace UniversityCorrespondencePortal.Controllers
             return RedirectToAction("InwardLetters");
         }
 
-        
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -766,154 +616,132 @@ namespace UniversityCorrespondencePortal.Controllers
             return RedirectToAction("InwardLetters");
         }
 
-
-
-        //outward letters
-        [HttpGet]
-        public ActionResult OutwardLetters()
+        public ActionResult OutwardLetter()
         {
-            if (Session["ClerkID"] == null || Session["DepartmentID"] == null)
+            if (Session["DepartmentID"] == null)
                 return RedirectToAction("Login");
 
             string deptId = Session["DepartmentID"].ToString();
 
+            // 📨 Fetch outward letters of the logged-in department
             var letters = db.OutwardLetters
                 .Where(l => l.DepartmentID == deptId)
-                .Include(l => l.Staff)
-                .Include(l => l.Department)
-                .OrderByDescending(l => l.OutwardLetterID)
+                .OrderByDescending(l => l.Date)
                 .ToList();
 
-            var model = letters.Select(l => new OutwardLetterViewModel
-            {
-                OutwardLetterID = l.OutwardLetterID,
-                OutwardNumber = l.OutwardNumber,
-                LetterNumber = l.LetterNumber,
-                DateReceived = l.DateReceived,
-                TimeReceived = l.TimeReceived,
-                DeliveryMode = l.DeliveryMode,
-                ReferenceID = l.ReferenceID,
-                Subject = l.Subject,
-                Remarks = l.Remarks,
-                Priority = l.Priority,
-                SenderDepartment = l.SenderDepartment,
-                ReceiverDepartments = l.ReceiverDepartments,
-                ReceiverNames = l.ReceiverNames,
-                StaffID = l.StaffID,
-                StaffName = l.Staff != null ? l.Staff.Name : "",
-                DepartmentID = l.DepartmentID,
-                DepartmentName = l.Department != null ? l.Department.DepartmentName : ""
-            }).ToList();
+            // 👥 Load staff of this department via StaffDepartments
+            var staffList = db.StaffDepartments
+                .Where(sd => sd.DepartmentID == deptId)
+                .Select(sd => sd.Staff)
+                .Distinct()
+                .ToList();
 
-            return View(model);
+            // 🏢 Load all departments
+            var departmentList = db.Departments.ToList();
+
+            // 📄 Prepare ViewModel
+            var model = new OutwardLetterPageViewModel
+            {
+                NewLetter = new OutwardLetterViewModel
+                {
+                    DepartmentID = deptId,
+                    SenderDepartment = Session["DepartmentName"]?.ToString()
+                },
+                OutwardLetters = letters
+            };
+
+            ViewBag.StaffList = staffList;
+            ViewBag.DepartmentList = departmentList;
+
+            return View("OutwardLetter", model);
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult CreateOutwardLetter(OutwardLetterViewModel model)
         {
-            if (Session["ClerkID"] == null || Session["DepartmentID"] == null)
+            if (Session["DepartmentID"] == null)
                 return RedirectToAction("Login");
 
+            if (!ModelState.IsValid)
+                return RedirectToAction("OutwardLetter");
+
             string deptId = Session["DepartmentID"].ToString();
+            string todayFormatted = DateTime.Now.ToString("yyyy/MM/dd");
+            int nextSerial = 1;
 
-            // 🔍 Get Department details
-            var dept = db.Departments.Find(deptId);
-            if (dept == null)
-                return RedirectToAction("OutwardLetters");
-
-            // 🔁 Delete last outward letter and tracker for this department
-            var lastLetter = db.OutwardLetters
-                .Where(l => l.DepartmentID == deptId)
-                .OrderByDescending(l => l.OutwardLetterID)
-                .FirstOrDefault();
-
-            if (lastLetter != null)
+            // 🔁 Get and update tracker
+            var existingTracker = db.OutwardLetterSerialTrackers.FirstOrDefault(t => t.DepartmentID == deptId && t.Date == DateTime.Today);
+            if (existingTracker != null && int.TryParse(existingTracker.LastSerialNumber, out int lastSerial))
             {
-                db.OutwardLetters.Remove(lastLetter);
-
-                var lastTracker = db.OutwardLetterSerialTrackers
-                    .FirstOrDefault(t => t.DepartmentID == deptId && t.LetterID == lastLetter.OutwardLetterID);
-
-                if (lastTracker != null)
-                    db.OutwardLetterSerialTrackers.Remove(lastTracker);
-
+                nextSerial = lastSerial + 1;
+                db.OutwardLetterSerialTrackers.Remove(existingTracker);
                 db.SaveChanges();
             }
 
-            // 🔢 Generate new serial
-            string prefix = dept.DepartmentCode + "/OUT/";
-            int newSerial = 1;
+            string paddedSerial = nextSerial.ToString("D3");
+            string outwardNumber = $"{deptId}-OUT-{todayFormatted}-{paddedSerial}";
 
-            var lastSerialTracker = db.OutwardLetterSerialTrackers
-                .Where(t => t.DepartmentID == deptId)
-                .OrderByDescending(t => t.TrackerID)
-                .FirstOrDefault();
-
-            if (lastSerialTracker != null && int.TryParse(lastSerialTracker.LastSerialNumber?.Split('/').Last(), out int parsed))
+            // 📄 Create new outward letter
+            var letter = new OutwardLetter
             {
-                newSerial = parsed + 1;
-            }
-
-            string outwardNumber = prefix + newSerial.ToString("D3");
-
-            // 📨 Create new OutwardLetter
-            var newLetter = new OutwardLetter
-            {
+                LetterNo = model.LetterNo,
                 OutwardNumber = outwardNumber,
-                LetterNumber = model.LetterNumber,
-                DateReceived = model.DateReceived,
-                TimeReceived = model.TimeReceived,
+                Date = DateTime.Now.Date,
+                Time = DateTime.Now.TimeOfDay,
                 DeliveryMode = model.DeliveryMode,
                 ReferenceID = model.ReferenceID,
                 Subject = model.Subject,
                 Remarks = model.Remarks,
                 Priority = model.Priority,
-                SenderDepartment = model.SenderDepartment,
-                ReceiverDepartments = model.ReceiverDepartments,
-                ReceiverNames = model.ReceiverNames,
-                StaffID = model.StaffID,
+                SenderDepartment = Session["DepartmentName"]?.ToString(),
+                ReceiverDepartment = model.ReceiverDepartment == "Other" ? model.ReceiverDepartmentOther : model.ReceiverDepartment,
+                ReceiverName = model.ReceiverName,
                 DepartmentID = deptId
             };
 
-            db.OutwardLetters.Add(newLetter);
-            db.SaveChanges(); // Save first to get newLetter ID
+            db.OutwardLetters.Add(letter);
+            db.SaveChanges();
 
-            // 📌 Create new tracker
+            // 📌 Save new tracker
             var newTracker = new OutwardLetterSerialTracker
             {
                 DepartmentID = deptId,
-                Date = DateTime.Now,
-                LastSerialNumber = outwardNumber,
-                LetterID = newLetter.OutwardLetterID
+                Date = DateTime.Today,
+                LastSerialNumber = nextSerial.ToString()
             };
-
             db.OutwardLetterSerialTrackers.Add(newTracker);
             db.SaveChanges();
 
-            return RedirectToAction("OutwardLetters");
-        }
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult EditOutwardLetter(OutwardLetterViewModel model)
-        {
-            var letter = db.OutwardLetters.Find(model.OutwardLetterID);
-            if (letter == null) return RedirectToAction("OutwardLetters");
+            // 👥 Save in OutwardLetterStaff table
+            if (model.AssignedStaffIDs != null)
+            {
+                foreach (int staffId in model.AssignedStaffIDs)
+                {
+                    db.OutwardLetterStaffs.Add(new OutwardLetterStaff
+                    {
+                        LetterID = letter.LetterID,
+                        StaffID = staffId
+                    });
+                }
+                db.SaveChanges();
+            }
 
-            letter.LetterNumber = model.LetterNumber;
-            letter.DateReceived = model.DateReceived;
-            letter.TimeReceived = model.TimeReceived;
-            letter.DeliveryMode = model.DeliveryMode;
-            letter.ReferenceID = model.ReferenceID;
-            letter.Subject = model.Subject;
-            letter.Remarks = model.Remarks;
-            letter.Priority = model.Priority;
-            letter.SenderDepartment = model.SenderDepartment;
-            letter.ReceiverDepartments = model.ReceiverDepartments;
-            letter.ReceiverNames = model.ReceiverNames;
-            letter.StaffID = model.StaffID;
+            var selectedStaffs = db.Staffs.Where(s => model.AssignedStaffIDs.Contains(s.StaffID)).ToList();
+            var emailService = new EmailService();
 
-            db.SaveChanges();
-            return RedirectToAction("OutwardLetters");
+            foreach (var staff in selectedStaffs)
+            {
+                if (!string.IsNullOrEmpty(staff.Email))
+                {
+                    string subject = "New Outward Letter Assigned";
+                    string body = $"Dear {staff.Name},<br/><br/>You have been assigned as the sender for Letter No: <strong>{letter.LetterNo}</strong>.<br/>Subject: {letter.Subject}<br/>Please take note.<br/><br/>Regards,<br/>University Portal";
+                    emailService.SendEmail(staff.Email, subject, body);
+                }
+            }
+
+            TempData["OutwardSuccess"] = true;
+            return RedirectToAction("OutwardLetter");
         }
 
 

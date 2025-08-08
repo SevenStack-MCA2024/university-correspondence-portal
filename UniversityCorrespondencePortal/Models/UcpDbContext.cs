@@ -8,16 +8,17 @@ namespace UniversityCorrespondencePortal.Models
             : base("name=UcpDbConnection") // This name should match your connection string in Web.config
         {
         }
+        public DbSet<OutwardLetter> OutwardLetters { get; set; }
+        public DbSet<OutwardLetterStaff> OutwardLetterStaffs { get; set; }
+        public DbSet<OutwardLetterSerialTracker> OutwardLetterSerialTrackers { get; set; }
 
         public DbSet<Department> Departments { get; set; }
         public DbSet<Clerk> Clerks { get; set; }
         public DbSet<Staff> Staffs { get; set; }
         public DbSet<StaffDepartment> StaffDepartments { get; set; }
         public DbSet<InwardLetter> InwardLetters { get; set; }
-        public DbSet<OutwardLetter> OutwardLetters { get; set; }
         public DbSet<Admin> Admins { get; set; }
         public DbSet<InwardLetterSerialTracker> InwardLetterSerialTrackers { get; set; }
-        public DbSet<OutwardLetterSerialTracker> OutwardLetterSerialTrackers { get; set; }
 
 
         // 🔁 Add the join table
@@ -56,6 +57,23 @@ namespace UniversityCorrespondencePortal.Models
             modelBuilder.Entity<Staff>()
                 .HasIndex(s => s.Phone)
                 .IsUnique();
+
+
+
+            modelBuilder.Entity<OutwardLetterStaff>()
+       .HasKey(ols => new { ols.LetterID, ols.StaffID });
+
+            modelBuilder.Entity<OutwardLetterStaff>()
+                .HasRequired(ols => ols.OutwardLetter)
+                .WithMany(ol => ol.OutwardLetterStaffs)
+                .HasForeignKey(ols => ols.LetterID)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<OutwardLetterStaff>()
+                .HasRequired(ols => ols.Staff)
+                .WithMany(s => s.OutwardLetterStaffs)
+                .HasForeignKey(ols => ols.StaffID)
+                .WillCascadeOnDelete(false);
 
         }
     }

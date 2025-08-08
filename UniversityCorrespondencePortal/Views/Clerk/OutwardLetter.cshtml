@@ -1,0 +1,189 @@
+﻿@model UniversityCorrespondencePortal.ViewModels.OutwardLetterPageViewModel
+
+@{
+    Layout = "~/Views/Shared/_ClerkLayout.cshtml";
+    ViewBag.Title = "Outward Letters";
+}
+
+<h2 class="mb-4">📤 Outward Letters</h2>
+
+@if (TempData["OutwardSuccess"] != null)
+{
+    <div class="alert alert-success mt-3">
+        ✅ Outward Letter created successfully!
+    </div>
+}
+
+<div>
+    <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#outwardLetterModal">
+        ➕ Add Outward Letter
+    </button>
+</div>
+
+<table class="table table-bordered table-hover table-striped">
+    <thead class="table-success">
+        <tr>
+            <th>Letter No</th>
+            <th>Outward No</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Delivery Mode</th>
+            <th>Receiver Name</th>
+            <th>Receiver Department</th>
+            <th>Subject</th>
+            <th>Reference ID</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.OutwardLetters != null && Model.OutwardLetters.Any())
+        {
+            foreach (var letter in Model.OutwardLetters)
+            {
+                <tr>
+                    <td>@letter.LetterNo</td>
+                    <td>@letter.OutwardNumber</td>
+                    <td>@(letter.Date?.ToString("dd/MM/yyyy"))</td>
+                    <td>@(letter.Time.HasValue ? letter.Time.Value.ToString(@"hh\:mm") : "")</td>
+                    <td>@letter.DeliveryMode</td>
+                    <td>@letter.ReceiverName</td>
+                    <td>@letter.ReceiverDepartment</td>
+                    <td>@letter.Subject</td>
+                    <td>@letter.ReferenceID</td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="9" class="text-center">No outward letters found.</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- ✅ Outward Letter Modal -->
+<div class="modal fade" id="outwardLetterModal" tabindex="-1" aria-labelledby="outwardLetterModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post" action="@Url.Action("CreateOutwardLetter", "Clerk")" id="outwardLetterForm">
+                @Html.AntiForgeryToken()
+
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="outwardLetterModalLabel">Create Outward Letter</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Letter No</label>
+                        <input type="text" name="LetterNo" class="form-control" required />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Delivery Mode</label>
+                        <input type="text" name="DeliveryMode" class="form-control" required />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Reference ID</label>
+                        <input type="text" name="ReferenceID" class="form-control" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Subject</label>
+                        <input type="text" name="Subject" class="form-control" required />
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label">Remark</label>
+                        <textarea name="Remarks" class="form-control"></textarea>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Priority</label>
+                        <select name="Priority" class="form-select">
+                            <option value="Normal">Normal</option>
+                            <option value="Urgent">Urgent</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Sender Department</label>
+                        <input type="text" class="form-control" name="SenderDepartment" value="@Session["DepartmentName"]" readonly />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Sender Name(s)</label>
+                        <select name="AssignedStaffIDs" class="form-select" multiple>
+                            @foreach (var staff in ViewBag.StaffList)
+                            {
+                                <option value="@staff.StaffID">@staff.Name</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Receiver Department</label>
+                        <select name="ReceiverDepartment" class="form-select" id="receiverDeptDropdown">
+                            @foreach (var dept in ViewBag.DepartmentList)
+                            {
+                                <option value="@dept.DepartmentName">@dept.DepartmentName</option>
+                            }
+                            <option value="Other">Other</option>
+                        </select>
+                        <input type="text" name="ReceiverDepartmentOther" class="form-control mt-2 d-none" id="receiverDeptOther" placeholder="Enter external department" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Receiver Name</label>
+                        <input type="text" name="ReceiverName" class="form-control" />
+                    </div>
+
+                    <input type="hidden" name="DepartmentID" value="@Session["DepartmentID"]" />
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">📤 Submit</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">❌ Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ✅ Success Message Alert -->
+<div class="alert alert-success mt-3 d-none" id="outwardSuccessAlert">
+    ✅ Outward Letter submitted successfully.
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const dropdown = document.getElementById("receiverDeptDropdown");
+            const otherInput = document.getElementById("receiverDeptOther");
+
+            dropdown.addEventListener("change", function () {
+                if (dropdown.value === "Other") {
+                    otherInput.classList.remove("d-none");
+                } else {
+                    otherInput.classList.add("d-none");
+                    otherInput.value = '';
+                }
+            });
+
+            if (dropdown.value === "Other") {
+                otherInput.classList.remove("d-none");
+            }
+
+            document.getElementById('outwardLetterForm').addEventListener('submit', function () {
+                setTimeout(function () {
+                    $('#outwardLetterModal').modal('hide');
+                    $('#outwardLetterForm')[0].reset();
+                    $('#receiverDeptOther').addClass('d-none');
+                    $('#outwardSuccessAlert').removeClass('d-none');
+                    setTimeout(() => $('#outwardSuccessAlert').addClass('d-none'), 5000);
+                }, 500);
+            });
+        });
+    </script>
+}

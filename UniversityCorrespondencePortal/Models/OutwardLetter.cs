@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -7,20 +8,19 @@ namespace UniversityCorrespondencePortal.Models
     public class OutwardLetter
     {
         [Key]
-        public int OutwardLetterID { get; set; }
+        public int LetterID { get; set; }
 
-        [Required]
+        [MaxLength(50)]
+        public string LetterNo { get; set; }
+
         [MaxLength(50)]
         public string OutwardNumber { get; set; }
 
-        [MaxLength(50)]
-        public string LetterNumber { get; set; }
-
         [DataType(DataType.Date)]
-        public DateTime? DateReceived { get; set; }
+        public DateTime? Date { get; set; }
 
         [DataType(DataType.Time)]
-        public TimeSpan? TimeReceived { get; set; }
+        public TimeSpan? Time { get; set; }
 
         [MaxLength(50)]
         public string DeliveryMode { get; set; }
@@ -40,24 +40,23 @@ namespace UniversityCorrespondencePortal.Models
         [MaxLength(100)]
         public string SenderDepartment { get; set; }
 
-        // ✅ Multiple receiver departments (comma-separated or semicolon-separated)
-        [MaxLength(1000)]
-        public string ReceiverDepartments { get; set; }
+        [MaxLength(100)]
+        public string SenderName { get; set; }
 
-        // ✅ Multiple receiver names (comma-separated or semicolon-separated)
-        [MaxLength(1000)]
-        public string ReceiverNames { get; set; }
+        [MaxLength(100)]
+        public string ReceiverName { get; set; }
 
-        // ✅ Foreign Key for Staff
-        public int? StaffID { get; set; }
+        [MaxLength(100)]
+        public string ReceiverDepartment { get; set; }
 
-        [ForeignKey("StaffID")]
-        public virtual Staff Staff { get; set; }
-
-        // ✅ Foreign Key for Department
+        [Required]
+        [MaxLength(10)]
         public string DepartmentID { get; set; }
 
         [ForeignKey("DepartmentID")]
         public virtual Department Department { get; set; }
+
+        // Navigation property for assigned staff
+        public virtual ICollection<OutwardLetterStaff> OutwardLetterStaffs { get; set; }
     }
 }

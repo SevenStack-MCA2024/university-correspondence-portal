@@ -1,23 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using UniversityCorrespondencePortal.Models;
 
-namespace UniversityCorrespondencePortal.Models.ViewModels
+namespace UniversityCorrespondencePortal.ViewModels
 {
     public class OutwardLetterViewModel
     {
-        public int? OutwardLetterID { get; set; }
+        public int LetterID { get; set; }
 
-        [Required]
         [MaxLength(50)]
-        public string LetterNumber { get; set; }
+        public string LetterNo { get; set; }
+        public string ReceiverDepartmentOther { get; set; }
+
+
+        [MaxLength(50)]
+        public string OutwardNumber { get; set; }
 
         [DataType(DataType.Date)]
-        public DateTime? DateReceived { get; set; }
+        public DateTime? Date { get; set; }
 
         [DataType(DataType.Time)]
-        public TimeSpan? TimeReceived { get; set; }
+        public TimeSpan? Time { get; set; }
 
         [MaxLength(50)]
         public string DeliveryMode { get; set; }
@@ -37,16 +40,20 @@ namespace UniversityCorrespondencePortal.Models.ViewModels
         [MaxLength(100)]
         public string SenderDepartment { get; set; }
 
-        [MaxLength(1000)]
-        public string ReceiverDepartments { get; set; }
+        [MaxLength(100)]
+        public string SenderName { get; set; }
 
-        [MaxLength(1000)]
-        public string ReceiverNames { get; set; }
+        [MaxLength(100)]
+        public string ReceiverName { get; set; }
 
-        public int? StaffID { get; set; }
+        [MaxLength(100)]
+        public string ReceiverDepartment { get; set; }
 
-        // Optional for displaying lists
-        public List<Staff> AvailableStaff { get; set; }
-        public List<Department> AllDepartments { get; set; }
+        [Required]
+        [MaxLength(10)]
+        public string DepartmentID { get; set; }
+
+        // Staff to assign
+        public List<int> AssignedStaffIDs { get; set; }
     }
 }
