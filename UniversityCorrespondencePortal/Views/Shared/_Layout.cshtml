@@ -3,63 +3,143 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>@ViewBag.Title</title>
+    <title>@ViewBag.Title - University Correspondence Portal</title>
+
+    <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="~/Content/bootstrap.css" />
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
+
+    <!-- Google Fonts (Poppins) -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- jQuery + Bootstrap JS -->
     <script src="~/Scripts/jquery-3.6.0.min.js"></script>
     <script src="~/Scripts/bootstrap.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 
     <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
+            background: #f5f7fa;
+            font-size: 16px;
+        }
+
+        .navbar-logo {
+            height: 48px;
+            margin-right: 10px;
+        }
+
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1030;
+            background: #003366 !important; /* Deep Blue */
+            color: white !important;
+            transition: all 0.3s ease-in-out;
+            padding: 0.75rem 1.5rem;
+        }
+
+            .navbar .nav-link {
+                color: #f8f9fa !important;
+                font-weight: 500;
+                font-size: 16px;
+                transition: color 0.3s ease, transform 0.2s ease;
+            }
+
+                .navbar .nav-link:hover {
+                    color: #ffc107 !important;
+                    transform: scale(1.05);
+                }
+
+        .nav-link i {
+            margin-right: 6px;
         }
 
         main {
             flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            height: calc(100vh - 130px); /* Adjusted for navbar + footer height */
         }
 
-        .navbar-logo {
-            height: 50px;
-            margin-right: 15px;
+        footer {
+            position: sticky;
+            bottom: 0;
+            width: 100%;
+            background: #001f3f; /* Dark Navy */
+            color: #f8f9fa;
+            padding: 20px 0; /* Increased height */
+            font-size: 15px;
+            font-weight: 500;
+            text-align: center;
+            box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.15);
+            transition: background 0.3s ease;
+        }
+
+        .footer span:hover {
+            color: #ffc107;
+            cursor: default;
+        }
+
+        .navbar-brand strong {
+            font-size: 22px;
+            font-weight: 600;
+            color: #ffffff;
         }
     </style>
 </head>
 <body>
-
-    @* Header/Navbar *@
-    <nav class="navbar navbar-expand-lg navbar-light bg-light px-4">
-        <a class="navbar-brand d-flex align-items-center" href="#">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg shadow">
+        <a class="navbar-brand d-flex align-items-center text-white" href="@Url.Action("Index", "Home")">
             <img src="~/Content/logo.jpg" class="navbar-logo" alt="UCP Logo" />
             <strong>UCP</strong>
         </a>
 
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
+        <button class="navbar-toggler text-white" type="button" data-toggle="collapse" data-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
 
         <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
             <ul class="navbar-nav">
-                <li class="nav-item"><a class="nav-link" href="@Url.Action("Index", "Home")"><i class="bi bi-house-fill"></i> Home</a></li>
-                <li class="nav-item"><a class="nav-link" href="@Url.Action("Login", "Clerk")"><i class="bi bi-person-circle"></i> Clerk</a></li>
-                <li class="nav-item"><a class="nav-link" href="@Url.Action("Login", "Staff")"><i class="bi bi-people"></i> Staff</a></li>
-                <li class="nav-item"><a class="nav-link" href="@Url.Action("Login", "Admin")"><i class="bi bi-shield-lock"></i> Admin</a></li>
-                <li class="nav-item"><a class="nav-link" href="@Url.Action("About", "Home")"><i class="bi bi-info-circle"></i> About</a></li>
-                <li class="nav-item"><a class="nav-link" href="@Url.Action("Help", "Home")"><i class="bi bi-question-circle"></i> Help</a></li>
+                <li class="nav-item">
+                    <a class="nav-link" href="@Url.Action("Index", "Home")"><i class="bi bi-house-fill"></i> Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="@Url.Action("Login", "Clerk")"><i class="bi bi-person-circle"></i> Clerk</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="@Url.Action("Login", "Staff")"><i class="bi bi-people"></i> Staff</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="@Url.Action("Login", "Admin")"><i class="bi bi-shield-lock"></i> Admin</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="@Url.Action("About", "Home")"><i class="bi bi-info-circle"></i> About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="@Url.Action("Help", "Home")"><i class="bi bi-question-circle"></i> Help</a>
+                </li>
             </ul>
         </div>
     </nav>
 
-    <main class="container mt-4">
+    <!-- Main Content -->
+    <main class="container-fluid">
         @RenderBody()
     </main>
 
-    <footer class="footer py-3 bg-light text-center">
+    <!-- Footer -->
+    <footer class="footer">
         <div class="container">
-            <span class="text-muted">© 2025 University Correspondence Portal. All Rights Reserved.</span>
+            <span>© 2025 University Correspondence Portal. All Rights Reserved.</span>
         </div>
     </footer>
+
     @RenderSection("Scripts", required: false)
 </body>
 </html>

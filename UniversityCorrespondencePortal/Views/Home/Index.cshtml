@@ -2,15 +2,45 @@
     ViewBag.Title = "Home Page";
 }
 
-<main class="d-flex justify-content-center align-items-center" style="height: 80vh;">
-    <div class="text-center">
-        <h2 class="mb-4">Welcome to the University Correspondence Portal</h2>
+<style>
+    .home-container {
+        height: 80vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        animation: fadeInSlide 1s ease-out forwards;
+        opacity: 0;
+        transform: translateY(30px);
+    }
 
-        <div class="mb-3">
-            <a href="@Url.Action("Login", "Clerk")" class="btn btn-primary btn-lg">Clerk Login</a>
-        </div>
-        <div>
-            <a href="@Url.Action("Login", "Staff")" class="btn btn-secondary btn-lg">Staff Login</a>
-        </div>
+    @@keyframes fadeInSlide {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .home-container h2 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #004080;
+        margin-bottom: 20px;
+    }
+
+    .home-container p {
+        font-size: 1.1rem;
+        max-width: 600px;
+        margin: 0 auto;
+        color: #444;
+        line-height: 1.6;
+    }
+</style>
+
+<main class="home-container">
+    <div class="text-center">
+        <h2>Welcome to the University Correspondence Portal</h2>
+        <p>
+            This portal streamlines communication across university departments, offering a centralized, secure, and efficient platform for handling official correspondence, circulars, and notifications. Whether you're a staff member, clerk, or administrator, the system ensures smooth operations and quick access to crucial information.
+        </p>
     </div>
 </main>

@@ -14,9 +14,6 @@ namespace UniversityCorrespondencePortal.Controllers
         private readonly UcpDbContext db = new UcpDbContext();
 
         // GET: Staff/Login
-        public ActionResult Login() => View();
-
-        [HttpPost]
         public ActionResult Login(string email, string password)
         {
             email = email?.Trim();
@@ -28,15 +25,37 @@ namespace UniversityCorrespondencePortal.Controllers
                 return View();
             }
 
-            var staff = db.Staffs.FirstOrDefault(s => s.Email == email && s.IsActive);
+            // Map SQL result directly into StaffViewModel
+            var staffData = db.Database.SqlQuery<StaffViewModel>(
+                @"SELECT TOP 1 
+              StaffID, 
+              Name, 
+              Email, 
+              Phone, 
+              Designation, 
+              IsActive, 
+              MustResetPassword
+          FROM Staffs 
+          WHERE Email = @p0 AND IsActive = 1", email).FirstOrDefault();
 
-            // Plain text password check
-            if (staff != null && staff.PasswordHash == password)
+            if (staffData != null)
             {
-                Session["StaffID"] = staff.StaffID;
-                Session["StaffName"] = staff.Name;
-                Session["StaffEmail"] = staff.Email;
-                return RedirectToAction("Letter", "Staff");
+                // You now need to fetch the full Staff record to verify the hashed password
+                var fullStaff = db.Staffs.FirstOrDefault(s => s.StaffID == staffData.StaffID);
+
+                if (fullStaff != null && PasswordHelper.VerifyPassword(password, fullStaff.PasswordHash))
+                {
+                    Session["StaffID"] = staffData.StaffID;
+                    Session["StaffName"] = staffData.Name;
+                    Session["StaffEmail"] = staffData.Email;
+
+                    if (staffData.MustResetPassword)
+                    {
+                        return RedirectToAction("ResetPassword", "Staff");
+                    }
+
+                    return RedirectToAction("Profile", "Staff");
+                }
             }
 
             ViewBag.Error = "Invalid email, password, or your account is inactive.";
@@ -164,6 +183,44 @@ namespace UniversityCorrespondencePortal.Controllers
             };
 
             return View(viewModel);
+        }
+        [HttpGet]
+        public ActionResult ResetPassword()
+        {
+            if (Session["StaffID"] == null)
+                return RedirectToAction("Login", "Staff");
+
+            return View();
+        }
+
+        [HttpPost]
+        public ActionResult ResetPassword(string newPassword, string confirmPassword)
+        {
+            if (Session["StaffID"] == null)
+                return RedirectToAction("Login", "Staff");
+
+            if (string.IsNullOrWhiteSpace(newPassword) || newPassword != confirmPassword)
+            {
+                ViewBag.Error = "Passwords do not match or are empty.";
+                return View();
+            }
+
+            if (newPassword == "0000")
+            {
+                ViewBag.Error = "You cannot reuse the default password.";
+                return View();
+            }
+
+            int staffId = Convert.ToInt32(Session["StaffID"]);
+            string hashed = PasswordHelper.HashPassword(newPassword);
+
+            // ✅ Update using SQL to avoid model changes
+            db.Database.ExecuteSqlCommand(
+                "UPDATE Staffs SET PasswordHash = @p0, MustResetPassword = 0 WHERE StaffID = @p1",
+                hashed, staffId);
+
+            TempData["Message"] = "Password updated successfully.";
+            return RedirectToAction("Profile", "Staff");
         }
 
 

@@ -32,6 +32,7 @@
             <th>Receiver Department</th>
             <th>Subject</th>
             <th>Reference ID</th>
+            <th>Action</th>
         </tr>
     </thead>
     <tbody>
@@ -49,19 +50,131 @@
                     <td>@letter.ReceiverDepartment</td>
                     <td>@letter.Subject</td>
                     <td>@letter.ReferenceID</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#viewModal@letter.LetterID">👁 View</button>
+                        <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editModal@letter.LetterID">✏ Edit</button>
+                    </td>
                 </tr>
             }
         }
         else
         {
             <tr>
-                <td colspan="9" class="text-center">No outward letters found.</td>
+                <td colspan="10" class="text-center">No outward letters found.</td>
             </tr>
         }
     </tbody>
 </table>
 
-<!-- ✅ Outward Letter Modal -->
+@foreach (var letter in Model.OutwardLetters)
+{
+    <!-- 🔍 View Modal -->
+    <div class="modal fade" id="viewModal@letter.LetterID" tabindex="-1" aria-labelledby="viewModalLabel@letter.LetterID" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title" id="viewModalLabel@letter.LetterID">📄 View Outward Letter</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">Letter No</dt>
+                        <dd class="col-sm-8">@letter.LetterNo</dd>
+
+                        <dt class="col-sm-4">Outward Number</dt>
+                        <dd class="col-sm-8">@letter.OutwardNumber</dd>
+
+                        <dt class="col-sm-4">Date</dt>
+                        <dd class="col-sm-8">@((letter.Date?.ToString("dd/MM/yyyy")) ?? "N/A")</dd>
+
+                        <dt class="col-sm-4">Time</dt>
+                        <dd class="col-sm-8">@((letter.Time.HasValue) ? letter.Time.Value.ToString(@"hh\:mm") : "N/A")</dd>
+
+                        <dt class="col-sm-4">Delivery Mode</dt>
+                        <dd class="col-sm-8">@letter.DeliveryMode</dd>
+
+                        <dt class="col-sm-4">Reference ID</dt>
+                        <dd class="col-sm-8">@letter.ReferenceID</dd>
+
+                        <dt class="col-sm-4">Subject</dt>
+                        <dd class="col-sm-8">@letter.Subject</dd>
+
+                        <dt class="col-sm-4">Remarks</dt>
+                        <dd class="col-sm-8">@letter.Remarks</dd>
+
+                        <dt class="col-sm-4">Priority</dt>
+                        <dd class="col-sm-8">@letter.Priority</dd>
+
+                        <dt class="col-sm-4">Sender Department</dt>
+                        <dd class="col-sm-8">@letter.SenderDepartment</dd>
+
+                        <dt class="col-sm-4">Sender Name(s)</dt>
+                        <dd class="col-sm-8">@letter.SenderName</dd>
+
+                        <dt class="col-sm-4">Receiver Name</dt>
+                        <dd class="col-sm-8">@letter.ReceiverName</dd>
+
+                        <dt class="col-sm-4">Receiver Department</dt>
+                        <dd class="col-sm-8">@letter.ReceiverDepartment</dd>
+
+                        <dt class="col-sm-4">Department ID</dt>
+                        <dd class="col-sm-8">@letter.DepartmentID</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ✏ Edit Modal -->
+    <div class="modal fade" id="editModal@letter.LetterID" tabindex="-1" aria-labelledby="editModalLabel@letter.LetterID" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="post" action="@Url.Action("EditOutwardLetter", "Clerk")">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="ID" value="@letter.LetterID" />
+
+                    <div class="modal-header bg-warning">
+                        <h5 class="modal-title" id="editModalLabel@letter.LetterID">✏ Edit Outward Letter</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Delivery Mode</label>
+                            <input type="text" name="DeliveryMode" class="form-control" value="@letter.DeliveryMode" required />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Reference ID</label>
+                            <input type="text" name="ReferenceID" class="form-control" value="@letter.ReferenceID" />
+                        </div>
+
+                        <div class="col-md-12">
+                            <label class="form-label">Remark</label>
+                            <textarea name="Remarks" class="form-control">@letter.Remarks</textarea>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Receiver Department</label>
+                            <input type="text" name="ReceiverDepartment" class="form-control" value="@letter.ReceiverDepartment" />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Receiver Name</label>
+                            <input type="text" name="ReceiverName" class="form-control" value="@letter.ReceiverName" />
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">💾 Save Changes</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">❌ Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- ➕ Add Outward Letter Modal -->
 <div class="modal fade" id="outwardLetterModal" tabindex="-1" aria-labelledby="outwardLetterModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -109,12 +222,12 @@
 
                     <div class="col-md-4">
                         <label class="form-label">Sender Department</label>
-                        <input type="text" class="form-control" name="SenderDepartment" value="@Session["DepartmentName"]" readonly />
+                        <input type="text" class="form-control" name="SenderDepartment" value="@ViewBag.SenderDepartment" readonly />
                     </div>
 
                     <div class="col-md-4">
-                        <label class="form-label">Sender Name(s)</label>
-                        <select name="AssignedStaffIDs" class="form-select" multiple>
+                        <label class="form-label">Sender Name</label>
+                        <select name="AssignedStaffID" class="form-select">
                             @foreach (var staff in ViewBag.StaffList)
                             {
                                 <option value="@staff.StaffID">@staff.Name</option>
@@ -151,7 +264,6 @@
     </div>
 </div>
 
-<!-- ✅ Success Message Alert -->
 <div class="alert alert-success mt-3 d-none" id="outwardSuccessAlert">
     ✅ Outward Letter submitted successfully.
 </div>
@@ -175,7 +287,14 @@
                 otherInput.classList.remove("d-none");
             }
 
-            document.getElementById('outwardLetterForm').addEventListener('submit', function () {
+            document.getElementById('outwardLetterForm').addEventListener('submit', function (e) {
+                if (dropdown.value === "Other" && otherInput.value.trim() === "") {
+                    alert("Please enter a department name when selecting 'Other'.");
+                    otherInput.focus();
+                    e.preventDefault();
+                    return;
+                }
+
                 setTimeout(function () {
                     $('#outwardLetterModal').modal('hide');
                     $('#outwardLetterForm')[0].reset();

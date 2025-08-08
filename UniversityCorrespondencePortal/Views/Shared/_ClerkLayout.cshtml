@@ -7,8 +7,10 @@
     <meta charset="utf-8" />
     <title>@ViewBag.Title - Clerk Panel</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- ✅ Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 
-    <!-- ✅ jQuery (Must come before Bootstrap and other plugins) -->
+    <!-- ✅ jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <!-- ✅ Bootstrap 5 CSS -->
@@ -36,28 +38,58 @@
             padding: 20px;
         }
 
+        /* ✅ Footer Color */
         .layout-footer {
-            background-color: #343a40;
+            background-color: #1B1F3B; /* Deep Navy Blue */
             color: white;
             text-align: center;
             padding: 10px 0;
         }
+
+        /* ✅ Navbar Color */
+        .navbar-edu {
+            background-color: #3E64FF; /* Light Indigo */
+            color: white;
+        }
+
+            .navbar-edu a.btn-outline-light {
+                border-color: #ffffff;
+                color: #ffffff;
+            }
+
+                .navbar-edu a.btn-outline-light:hover {
+                    background-color: #ffffff;
+                    color: #3E64FF;
+                }
     </style>
 </head>
 <body>
     <div class="layout-wrapper">
         <!-- Header / Navbar -->
-        <header class="d-flex justify-content-between align-items-center p-3 bg-success text-white">
-            <div class="fw-bold">
+        <header class="navbar-edu d-flex justify-content-between align-items-center p-3">
+            <div class="fw-bold text-white">
                 Welcome Clerk
             </div>
             <div>
-                <a href="@Url.Action("Staff", "Clerk")" class="btn btn-outline-light me-2">Staff</a>
-                <a href="@Url.Action("InwardLetters", "Clerk")" class="btn btn-outline-light me-2">InwardLetter</a>
-                <a href="@Url.Action("OutwardLetter", "Clerk")" class="btn btn-outline-light me-2">OutwardLetter</a>
-                <a href="@Url.Action("Report", "Clerk")" class="btn btn-outline-light me-2">Report</a>
-                <a href="@Url.Action("Profile", "Clerk")" class="btn btn-outline-light me-2">Profile</a>
-                <a href="@Url.Action("Logout", "Clerk")" class="btn btn-outline-light">Logout</a>
+                <a href="@Url.Action("Staff", "Clerk")" class="btn btn-outline-light me-2">
+                    <i class="fas fa-users"></i> Staff
+                </a>
+                <a href="@Url.Action("InwardLetters", "Clerk")" class="btn btn-outline-light me-2">
+                    <i class="fas fa-envelope-open-text"></i> InwardLetter
+                </a>
+                <a href="@Url.Action("OutwardLetter", "Clerk")" class="btn btn-outline-light me-2">
+                    <i class="fas fa-paper-plane"></i> OutwardLetter
+                </a>
+                <a href="@Url.Action("Report", "Clerk")" class="btn btn-outline-light me-2">
+                    <i class="fas fa-chart-line"></i> Report
+                </a>
+                <a href="@Url.Action("Profile", "Clerk")" class="btn btn-outline-light me-2">
+                    <i class="fas fa-user-circle"></i> Profile
+                </a>
+                <a href="@Url.Action("Logout", "Clerk")" class="btn btn-outline-light">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+
             </div>
         </header>
 
@@ -72,7 +104,7 @@
         </footer>
     </div>
 
-    <!-- ✅ Scripts specific to views (e.g. Select2, Charts) will load here -->
+    <!-- Scripts -->
     @RenderSection("Scripts", required: false)
 </body>
 </html>

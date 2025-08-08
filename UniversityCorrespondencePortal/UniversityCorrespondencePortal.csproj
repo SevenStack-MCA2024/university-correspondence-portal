@@ -134,9 +134,10 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202508071332052_createschema.cs" />
-    <Compile Include="Migrations\202508071332052_createschema.Designer.cs">
-      <DependentUpon>202508071332052_createschema.cs</DependentUpon>
+    <Compile Include="Helpers\PasswordHelper.cs" />
+    <Compile Include="Migrations\202508072308211_createschema.cs" />
+    <Compile Include="Migrations\202508072308211_createschema.Designer.cs">
+      <DependentUpon>202508072308211_createschema.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Admin.cs" />
@@ -238,6 +239,7 @@
     <Content Include="Views\Home\About.cshtml" />
     <Content Include="Views\Home\Help.cshtml" />
     <Content Include="Views\Clerk\OutwardLetter.cshtml" />
+    <Content Include="Views\Staff\ResetPassword.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap.rtl.min.css.map" />
@@ -267,12 +269,12 @@
     <Content Include="Scripts\jquery-3.7.0.min.map" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202508071332052_createschema.resx">
-      <DependentUpon>202508071332052_createschema.cs</DependentUpon>
-    </EmbeddedResource>
+    <Folder Include="Views\OutwardLetter\" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Views\OutwardLetter\" />
+    <EmbeddedResource Include="Migrations\202508072308211_createschema.resx">
+      <DependentUpon>202508072308211_createschema.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
