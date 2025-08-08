@@ -3,34 +3,78 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="text-center mb-4">
-    <img src="~/Content/main2.jpg" style="height: 200px;" alt="Logo" class="mb-3" />
-    <h2 class="text-primary">University Correspondence Portal</h2>
-    <p class="lead">Built with passion and precision, this portal redefines how correspondence flows within the university.</p>
+<style>
+    .about-header h2 {
+        font-size: 32px;
+        font-weight: 700;
+        color: #004080;
+    }
 
-   
+    .about-header p {
+        font-size: 17px;
+        font-weight: 500;
+        color: #555;
+    }
+
+    .about-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .about-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+        }
+
+    .card-title {
+        font-size: 22px;
+        font-weight: 600;
+        color: #004080;
+    }
+
+    .card-subtitle {
+        font-size: 15px;
+        font-style: italic;
+    }
+
+    .about-btns .btn {
+        border-radius: 50px;
+        font-size: 16px;
+    }
+
+    .about-logo {
+        height: 200px;
+        border-radius: 12px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    }
+</style>
+
+<div class="text-center mb-5 about-header">
+    <img src="~/Content/main2.jpg" alt="Logo" class="mb-3 about-logo" />
+    <h2>University Correspondence Portal</h2>
+    <p class="lead">Built with passion and precision, this portal redefines how correspondence flows within the university.</p>
 </div>
 
 <div class="row justify-content-center">
     <!-- Developer 1 -->
     <div class="col-md-5 mb-4">
-        <div class="card shadow h-100">
+        <div class="card about-card h-100">
             <div class="card-body text-center">
-                <h4 class="card-title text-info">👨‍💻 Vishal Sonone</h4>
-                <p class="card-subtitle mb-2 text-muted">MCA Student, SOCS</p>
+                <h4 class="card-title">👨‍💻 Vishal Sonone</h4>
+                <p class="card-subtitle mb-3 text-muted">MCA Student, SOCS</p>
 
-                <div class="mt-3">
+                <div class="about-btns">
                     <a href="#" class="btn btn-outline-dark mx-1" title="GitHub"><i class="bi bi-github"></i></a>
                     <a href="#" class="btn btn-outline-primary mx-1" title="LinkedIn"><i class="bi bi-linkedin"></i></a>
                     <a href="https://your-portfolio-link.com" target="_blank" class="btn btn-outline-secondary mx-1" title="Portfolio">
                         <i class="bi bi-briefcase-fill"></i>
                     </a>
-
                     <a href="#" class="btn btn-outline-danger mx-1" title="Instagram"><i class="bi bi-instagram"></i></a>
                     <a href="https://wa.me/919370669660" target="_blank" class="btn btn-outline-success mx-1" title="WhatsApp">
                         <i class="bi bi-whatsapp"></i>
                     </a>
-
                 </div>
             </div>
         </div>
@@ -38,23 +82,21 @@
 
     <!-- Developer 2 -->
     <div class="col-md-5 mb-4">
-        <div class="card shadow h-100">
+        <div class="card about-card h-100">
             <div class="card-body text-center">
-                <h4 class="card-title text-info">👨‍💻 Rohit Mahajan</h4>
-                <p class="card-subtitle mb-2 text-muted">MCA Student ,SOCS</p>
+                <h4 class="card-title">👨‍💻 Rohit Mahajan</h4>
+                <p class="card-subtitle mb-3 text-muted">MCA Student, SOCS</p>
 
-                <div class="mt-3">
+                <div class="about-btns">
                     <a href="https://github.com/Rohitmahajan004" class="btn btn-outline-dark mx-1" title="GitHub"><i class="bi bi-github"></i></a>
                     <a href="https://www.linkedin.com/in/rohit-mahajan-b8268629a" class="btn btn-outline-primary mx-1" title="LinkedIn"><i class="bi bi-linkedin"></i></a>
                     <a href="https://rohit-mahajan-port.netlify.app/" target="_blank" class="btn btn-outline-secondary mx-1" title="Portfolio">
                         <i class="bi bi-briefcase-fill"></i>
                     </a>
-
                     <a href="https://www.instagram.com/rohitmahajan.23?igsh=eWV1djQ5OXpsamF3" class="btn btn-outline-danger mx-1" title="Instagram"><i class="bi bi-instagram"></i></a>
                     <a href="https://wa.me/919309332811" target="_blank" class="btn btn-outline-success mx-1" title="WhatsApp">
                         <i class="bi bi-whatsapp"></i>
                     </a>
-
                 </div>
             </div>
         </div>

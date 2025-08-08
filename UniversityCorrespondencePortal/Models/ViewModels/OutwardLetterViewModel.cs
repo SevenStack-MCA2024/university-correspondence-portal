@@ -54,6 +54,6 @@ namespace UniversityCorrespondencePortal.ViewModels
         public string DepartmentID { get; set; }
 
         // Staff to assign
-        public List<int> AssignedStaffIDs { get; set; }
+        public int AssignedStaffID { get; set; }
     }
 }

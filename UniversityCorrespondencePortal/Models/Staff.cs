@@ -38,6 +38,8 @@ namespace UniversityCorrespondencePortal.Models
         public string Phone { get; set; } // ✅ Make unique via Fluent API
 
         public bool IsActive { get; set; }
+        public bool MustResetPassword { get; set; }
+
 
         // Navigation
         public virtual ICollection<StaffDepartment> StaffDepartments { get; set; }

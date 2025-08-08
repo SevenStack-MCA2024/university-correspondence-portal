@@ -215,7 +215,8 @@ namespace UniversityCorrespondencePortal.Controllers
                 }
                 else
                 {
-                    staff.PasswordHash = "0000"; // default password
+                    staff.PasswordHash = PasswordHelper.HashPassword("0000");
+                    staff.MustResetPassword = true; // make sure it's true
                     db.Staffs.Add(staff);
                     db.SaveChanges();
 
@@ -434,8 +435,9 @@ namespace UniversityCorrespondencePortal.Controllers
                 DepartmentName = DepartmentName,
                 DepartmentCode = DepartmentCode
             });
-
-            db.SaveChanges();
+           
+                db.SaveChanges();
+            
             TempData["Message"] = "Department added successfully.";
             return RedirectToAction("AddDepartment");
         }

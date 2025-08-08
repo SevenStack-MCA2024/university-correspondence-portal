@@ -622,6 +622,13 @@ namespace UniversityCorrespondencePortal.Controllers
                 return RedirectToAction("Login");
 
             string deptId = Session["DepartmentID"].ToString();
+                var deptName = db.Departments
+                     .Where(d => d.DepartmentID == deptId)
+                     .Select(d => d.DepartmentName)
+                     .FirstOrDefault();
+
+            ViewBag.SenderDepartment = deptName; ;
+
 
             // 📨 Fetch outward letters of the logged-in department
             var letters = db.OutwardLetters
@@ -681,6 +688,9 @@ namespace UniversityCorrespondencePortal.Controllers
 
             string paddedSerial = nextSerial.ToString("D3");
             string outwardNumber = $"{deptId}-OUT-{todayFormatted}-{paddedSerial}";
+            var staff = db.Staffs.FirstOrDefault(s => s.StaffID == model.AssignedStaffID);
+            string senderName = staff != null ? staff.Name : "Unknown";
+
 
             // 📄 Create new outward letter
             var letter = new OutwardLetter
@@ -694,11 +704,16 @@ namespace UniversityCorrespondencePortal.Controllers
                 Subject = model.Subject,
                 Remarks = model.Remarks,
                 Priority = model.Priority,
-                SenderDepartment = Session["DepartmentName"]?.ToString(),
+                SenderDepartment = db.Departments
+         .Where(d => d.DepartmentID == deptId)
+         .Select(d => d.DepartmentName)
+         .FirstOrDefault(),
+                SenderName = senderName,
                 ReceiverDepartment = model.ReceiverDepartment == "Other" ? model.ReceiverDepartmentOther : model.ReceiverDepartment,
                 ReceiverName = model.ReceiverName,
                 DepartmentID = deptId
             };
+
 
             db.OutwardLetters.Add(letter);
             db.SaveChanges();
@@ -713,34 +728,49 @@ namespace UniversityCorrespondencePortal.Controllers
             db.OutwardLetterSerialTrackers.Add(newTracker);
             db.SaveChanges();
 
-            // 👥 Save in OutwardLetterStaff table
-            if (model.AssignedStaffIDs != null)
+            // Save single staff
+            db.OutwardLetterStaffs.Add(new OutwardLetterStaff
             {
-                foreach (int staffId in model.AssignedStaffIDs)
-                {
-                    db.OutwardLetterStaffs.Add(new OutwardLetterStaff
-                    {
-                        LetterID = letter.LetterID,
-                        StaffID = staffId
-                    });
-                }
-                db.SaveChanges();
+                LetterID = letter.LetterID,
+                StaffID = model.AssignedStaffID
+            });
+            db.SaveChanges();
+
+            // Send email to that staff
+         
+
+            if (staff != null && !string.IsNullOrEmpty(staff.Email))
+            {
+                var emailService = new EmailService();
+                string subject = "New Outward Letter Assigned";
+                string body = $"Dear {staff.Name},<br/><br/>You have been assigned as the sender for Letter No: <strong>{letter.LetterNo}</strong>.<br/>Subject: {letter.Subject}<br/>Please take note.<br/><br/>Regards,<br/>University Portal";
+                emailService.SendEmail(staff.Email, subject, body);
             }
 
-            var selectedStaffs = db.Staffs.Where(s => model.AssignedStaffIDs.Contains(s.StaffID)).ToList();
-            var emailService = new EmailService();
-
-            foreach (var staff in selectedStaffs)
-            {
-                if (!string.IsNullOrEmpty(staff.Email))
-                {
-                    string subject = "New Outward Letter Assigned";
-                    string body = $"Dear {staff.Name},<br/><br/>You have been assigned as the sender for Letter No: <strong>{letter.LetterNo}</strong>.<br/>Subject: {letter.Subject}<br/>Please take note.<br/><br/>Regards,<br/>University Portal";
-                    emailService.SendEmail(staff.Email, subject, body);
-                }
-            }
 
             TempData["OutwardSuccess"] = true;
+            return RedirectToAction("OutwardLetter");
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult EditOutwardLetter(OutwardLetter model)
+        {
+            if (ModelState.IsValid)
+            {
+                var existing = db.OutwardLetters.Find(model.LetterID);
+                if (existing != null)
+                {
+                    existing.DeliveryMode = model.DeliveryMode;
+                    existing.ReferenceID = model.ReferenceID;
+                    existing.Remarks = model.Remarks;
+                    existing.ReceiverDepartment = model.ReceiverDepartment;
+                    existing.ReceiverName = model.ReceiverName;
+
+                    db.SaveChanges();
+                    TempData["OutwardSuccess"] = "Outward letter updated.";
+                }
+            }
+
             return RedirectToAction("OutwardLetter");
         }
 
