@@ -285,7 +285,9 @@ namespace UniversityCorrespondencePortal.Controllers
         {
             try
             {
-                clerk.PasswordHash = "0000";
+                clerk.PasswordHash = PasswordHelper.HashPassword("0000"); // ✅ hashed password
+                clerk.MustResetPassword = true;
+
                 clerk.IsActive = true;
                 db.Clerks.Add(clerk);
                 db.SaveChanges();
@@ -298,6 +300,7 @@ namespace UniversityCorrespondencePortal.Controllers
 
             return RedirectToAction("AddClerk");
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
