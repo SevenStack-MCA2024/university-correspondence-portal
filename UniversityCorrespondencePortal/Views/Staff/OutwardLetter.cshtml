@@ -1,0 +1,117 @@
+﻿
+@model List<UniversityCorrespondencePortal.Models.ViewModels.InwardLetterViewModel>
+
+@{
+    ViewBag.Title = "Inward Letters";
+    Layout = "~/Views/Shared/_StaffLayout.cshtml";
+}
+
+<div class="container mt-4">
+    <h2>📬 Inward Letters Assigned to You</h2>
+
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Inward Number</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Sender Department</th>
+                <th>Sender Name</th>
+                <th>Reference ID</th>
+                <th>Subject</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Any())
+            {
+                foreach (var letter in Model)
+                {
+                    <tr>
+                        <td>@letter.InwardNumber</td>
+                        <td>@(letter.DateReceived?.ToString("yyyy-MM-dd") ?? "-")</td>
+                        <td>@(letter.TimeReceived?.ToString(@"hh\:mm") ?? "-")</td>
+                        <td>@letter.SenderDepartment</td>
+                        <td>@letter.SenderName</td>
+                        <td>@letter.ReferenceID</td>
+                        <td>@letter.Subject</td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-info view-letter-btn"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#letterModal"
+                                    data-letter='@Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(letter))'>
+                                View
+                            </button>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="8" class="text-center">No letters found.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal to show full letter details -->
+<div class="modal fade" id="letterModal" tabindex="-1" aria-labelledby="letterModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">📄 Letter Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-bordered">
+                    <tbody>
+                        <tr><th>Inward Number</th><td id="modalInwardNumber"></td></tr>
+                        <tr><th>Outward Number</th><td id="modalOutwardNumber"></td></tr>
+                        <tr><th>Date Received</th><td id="modalDateReceived"></td></tr>
+                        <tr><th>Time Received</th><td id="modalTimeReceived"></td></tr>
+                        <tr><th>Delivery Mode</th><td id="modalDeliveryMode"></td></tr>
+                        <tr><th>Sender Department</th><td id="modalSenderDept"></td></tr>
+                        <tr><th>Sender Name</th><td id="modalSenderName"></td></tr>
+                        <tr><th>Reference ID</th><td id="modalReferenceID"></td></tr>
+                        <tr><th>Subject</th><td id="modalSubject"></td></tr>
+                        <tr><th>Remarks</th><td id="modalRemarks"></td></tr>
+                        <tr><th>Priority</th><td id="modalPriority"></td></tr>
+                        <tr><th>Receiver Department ID</th><td id="modalReceiverDept"></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const buttons = document.querySelectorAll(".view-letter-btn");
+            buttons.forEach(button => {
+                button.addEventListener("click", function () {
+                    const letter = JSON.parse(this.getAttribute("data-letter"));
+
+                    document.getElementById("modalInwardNumber").innerText = letter.InwardNumber || "-";
+                    document.getElementById("modalOutwardNumber").innerText = letter.OutwardNumber || "-";
+                    document.getElementById("modalDateReceived").innerText = letter.DateReceived
+                        ? new Date(letter.DateReceived).toLocaleDateString()
+                        : "-";
+                    document.getElementById("modalTimeReceived").innerText = letter.TimeReceived
+                        ? new Date("1970-01-01T" + letter.TimeReceived).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        : "-";
+                    document.getElementById("modalDeliveryMode").innerText = letter.DeliveryMode || "-";
+                    document.getElementById("modalSenderDept").innerText = letter.SenderDepartment || "-";
+                    document.getElementById("modalSenderName").innerText = letter.SenderName || "-";
+                    document.getElementById("modalReferenceID").innerText = letter.ReferenceID || "-";
+                    document.getElementById("modalSubject").innerText = letter.Subject || "-";
+                    document.getElementById("modalRemarks").innerText = letter.Remarks || "-";
+                    document.getElementById("modalPriority").innerText = letter.Priority || "-";
+                    document.getElementById("modalReceiverDept").innerText = letter.ReceiverDepartment || "-";
+                });
+            });
+        });
+    </script>
+}
