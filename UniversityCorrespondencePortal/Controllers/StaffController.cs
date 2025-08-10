@@ -214,52 +214,7 @@ namespace UniversityCorrespondencePortal.Controllers
 
 
 
-        public ActionResult OutwardLetter()
-        {
-            return RedirectToAction("OutwardLetter", "Staff");
-
-        }
-
-
-
-
-        //public ActionResult InwardLetter()
-        //{
-        //    if (Session["StaffID"] == null)
-        //        return RedirectToAction("Login", "Staff");
-
-        //    int loggedInStaffID = Convert.ToInt32(Session["StaffID"]);
-
-        //    // Get all department names of this staff via junction table
-        //    var staffDepartmentNames = db.StaffDepartments
-        //        .Where(sd => sd.StaffID == loggedInStaffID)
-        //        .Select(sd => sd.Department.DepartmentName.Trim())
-        //        .ToList();
-
-        //    // Fetch InwardLetters where ReceiverDepartment matches any of staff's departments (exact match)
-        //    var inwardLetters = db.InwardLetters
-        //        .Where(il => staffDepartmentNames.Contains(il.ReceiverDepartment.Trim()))
-        //        .ToList();
-
-        //    // Map to ViewModel
-        //    var model = inwardLetters.Select(il => new InwardLetterViewModel
-        //    {
-        //        LetterID = il.LetterID,
-        //        InwardNumber = il.InwardNumber,
-        //        DateReceived = il.DateReceived,
-        //        TimeReceived = il.TimeReceived,
-        //        SenderDepartment = il.SenderDepartment,
-        //        SenderName = il.SenderName,
-        //        ReferenceID = il.ReferenceID,
-        //        Subject = il.Subject,
-        //        Remarks = il.Remarks,
-        //        DeliveryMode = il.DeliveryMode,
-        //        Priority = il.Priority,
-        //        ReceiverDepartment = il.ReceiverDepartment
-        //    }).ToList();
-
-        //    return View(model);
-        //}
+        
 
         public ActionResult InwardLetter()
         {
@@ -302,6 +257,45 @@ namespace UniversityCorrespondencePortal.Controllers
             return View(model);
         }
 
+
+        public ActionResult OutwardLetter()
+        {
+            if (Session["StaffID"] == null)
+            {
+                return RedirectToAction("Login", "Staff");
+            }
+
+            int loggedInStaffID = Convert.ToInt32(Session["StaffID"]);
+            var loggedInStaff = db.Staffs.FirstOrDefault(s => s.StaffID == loggedInStaffID);
+            if (loggedInStaff == null)
+            {
+                return HttpNotFound();
+            }
+
+            string staffName = loggedInStaff.Name;
+
+            var outwardLetters = db.OutwardLetters
+                .Where(ol =>ol.SenderName == staffName)
+                .Select(ol => new StaffOutwardLetterViewModel
+                {
+                    Type = "Outward",
+                    LetterID = ol.LetterID,
+                    OutwardNumber = ol.OutwardNumber,
+                    DateSent = ol.Date,
+                    DeliveryMode = ol.DeliveryMode,
+                    SenderDepartment = ol.SenderDepartment,
+                    SenderName = ol.SenderName,
+                    ReceiverDepartment = ol.ReceiverDepartment,
+                    ReceiverName = ol.ReceiverName,
+                    ReferenceID = ol.ReferenceID,
+                    Subject = ol.Subject,
+                    Remarks = ol.Remarks,
+                    Priority = ol.Priority
+                })
+                .ToList();
+
+            return View(outwardLetters);
+        }
 
 
     }
