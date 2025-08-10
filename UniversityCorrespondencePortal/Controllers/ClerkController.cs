@@ -817,6 +817,9 @@ namespace UniversityCorrespondencePortal.Controllers
         //}
 
         //-----------------------------Outward Letter methods -------------------------------
+
+
+        //-----------------------------Outward Letter methods -------------------------------
         public ActionResult OutwardLetter()
         {
             if (Session["DepartmentID"] == null)
@@ -866,39 +869,6 @@ namespace UniversityCorrespondencePortal.Controllers
 
 
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public JsonResult UpdateOutwardLetterInline(OutwardLetter updated)
-        {
-            if (updated == null || updated.LetterID <= 0)
-                return Json(new { success = false, message = "Invalid data" });
-
-            var letter = db.OutwardLetters.FirstOrDefault(l => l.LetterID == updated.LetterID);
-            if (letter == null)
-                return Json(new { success = false, message = "Letter not found" });
-
-            // Update fields
-            letter.LetterNo = updated.LetterNo;
-            letter.SenderName = updated.SenderName;
-            letter.ReceiverName = updated.ReceiverName;
-            letter.ReceiverDepartment = updated.ReceiverDepartment;
-            letter.ReferenceID = updated.ReferenceID;
-
-            db.SaveChanges();
-
-            return Json(new
-            {
-                success = true,
-                data = new
-                {
-                    letter.LetterNo,
-                    letter.SenderName,
-                    letter.ReceiverName,
-                    letter.ReceiverDepartment,
-                    letter.ReferenceID
-                }
-            });
-        }
 
 
 
@@ -990,6 +960,51 @@ namespace UniversityCorrespondencePortal.Controllers
 
 
             TempData["OutwardSuccess"] = true;
+            return RedirectToAction("OutwardLetter");
+        }
+
+
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult EditOutwardLetter(int LetterID, string LetterNo, string AssignedStaffID, string ReceiverDepartment, string ReceiverDepartmentOther, string ReceiverName, string ReferenceID, string Remarks, string DepartmentID)
+        {
+            if (Session["DepartmentID"] == null)
+                return RedirectToAction("Login");
+
+            var existingLetter = db.OutwardLetters.Find(LetterID);
+            if (existingLetter == null)
+                return HttpNotFound();
+
+            // ✅ Update only editable fields
+            existingLetter.LetterNo = LetterNo;
+            existingLetter.ReceiverDepartment = (ReceiverDepartment == "Other" && !string.IsNullOrEmpty(ReceiverDepartmentOther))
+                ? ReceiverDepartmentOther
+                : ReceiverDepartment;
+            existingLetter.ReceiverName = ReceiverName;
+            existingLetter.ReferenceID = ReferenceID;
+            existingLetter.Remarks = Remarks;
+
+            db.SaveChanges();
+
+            // 🧑 Update assigned staff (OutwardLetterStaff)
+            var letterStaff = db.OutwardLetterStaffs.FirstOrDefault(s => s.LetterID == LetterID);
+            if (letterStaff != null)
+            {
+                letterStaff.StaffID = int.Parse(AssignedStaffID);
+            }
+            else
+            {
+                db.OutwardLetterStaffs.Add(new OutwardLetterStaff
+                {
+                    LetterID = LetterID,
+                    StaffID = int.Parse(AssignedStaffID)
+                });
+            }
+            db.SaveChanges();
+
+            TempData["OutwardSuccess"] = "Outward Letter updated successfully.";
             return RedirectToAction("OutwardLetter");
         }
     }

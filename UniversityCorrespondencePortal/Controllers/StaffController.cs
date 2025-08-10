@@ -13,7 +13,7 @@ namespace UniversityCorrespondencePortal.Controllers
     {
         private readonly UcpDbContext db = new UcpDbContext();
 
-        // GET: Staff/Login
+        // GET: Staff/Login1
         public ActionResult Login(string email, string password)
         {
             email = email?.Trim();
@@ -54,7 +54,7 @@ namespace UniversityCorrespondencePortal.Controllers
                         return RedirectToAction("ResetPassword", "Staff");
                     }
 
-                    return RedirectToAction("Profile", "Staff");
+                    return RedirectToAction("InwardLetter", "Staff");
                 }
             }
 
@@ -109,18 +109,6 @@ namespace UniversityCorrespondencePortal.Controllers
             return Json(new { success = true });
         }
         
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -222,6 +210,98 @@ namespace UniversityCorrespondencePortal.Controllers
             TempData["Message"] = "Password updated successfully.";
             return RedirectToAction("Profile", "Staff");
         }
+
+
+
+
+        public ActionResult OutwardLetter()
+        {
+            return RedirectToAction("OutwardLetter", "Staff");
+
+        }
+
+
+
+
+        //public ActionResult InwardLetter()
+        //{
+        //    if (Session["StaffID"] == null)
+        //        return RedirectToAction("Login", "Staff");
+
+        //    int loggedInStaffID = Convert.ToInt32(Session["StaffID"]);
+
+        //    // Get all department names of this staff via junction table
+        //    var staffDepartmentNames = db.StaffDepartments
+        //        .Where(sd => sd.StaffID == loggedInStaffID)
+        //        .Select(sd => sd.Department.DepartmentName.Trim())
+        //        .ToList();
+
+        //    // Fetch InwardLetters where ReceiverDepartment matches any of staff's departments (exact match)
+        //    var inwardLetters = db.InwardLetters
+        //        .Where(il => staffDepartmentNames.Contains(il.ReceiverDepartment.Trim()))
+        //        .ToList();
+
+        //    // Map to ViewModel
+        //    var model = inwardLetters.Select(il => new InwardLetterViewModel
+        //    {
+        //        LetterID = il.LetterID,
+        //        InwardNumber = il.InwardNumber,
+        //        DateReceived = il.DateReceived,
+        //        TimeReceived = il.TimeReceived,
+        //        SenderDepartment = il.SenderDepartment,
+        //        SenderName = il.SenderName,
+        //        ReferenceID = il.ReferenceID,
+        //        Subject = il.Subject,
+        //        Remarks = il.Remarks,
+        //        DeliveryMode = il.DeliveryMode,
+        //        Priority = il.Priority,
+        //        ReceiverDepartment = il.ReceiverDepartment
+        //    }).ToList();
+
+        //    return View(model);
+        //}
+
+        public ActionResult InwardLetter()
+        {
+            if (Session["StaffID"] == null)
+            {
+                return RedirectToAction("Login", "Staff");
+            }
+
+            int loggedInStaffID = Convert.ToInt32(Session["StaffID"]);
+
+            // Get all DepartmentIDs assigned to logged-in staff
+            var staffDepartmentIds = db.StaffDepartments
+                                       .Where(sd => sd.StaffID == loggedInStaffID)
+                                       .Select(sd => sd.DepartmentID)
+                                       .ToList();
+
+            // Fetch InwardLetters where ReceiverDepartment (which stores DepartmentID) matches any staff's department
+            var inwardLetters = db.InwardLetters
+                                  .Where(il => staffDepartmentIds.Contains(il.ReceiverDepartment))
+                                  .ToList();
+
+            // Map to ViewModel
+            var model = inwardLetters.Select(il => new UniversityCorrespondencePortal.Models.ViewModels.InwardLetterViewModel
+            {
+                LetterID = il.LetterID,
+                InwardNumber = il.InwardNumber,
+                OutwardNumber = il.OutwardNumber,
+                DateReceived = il.DateReceived,
+                TimeReceived = il.TimeReceived,
+                DeliveryMode = il.DeliveryMode,
+                SenderDepartment = il.SenderDepartment,
+                SenderName = il.SenderName,
+                ReferenceID = il.ReferenceID,
+                Subject = il.Subject,
+                Remarks = il.Remarks,
+                Priority = il.Priority,
+                ReceiverDepartment = il.ReceiverDepartment  // This holds DepartmentID
+            }).ToList();
+
+            return View(model);
+        }
+
 
 
     }

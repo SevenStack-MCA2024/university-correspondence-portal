@@ -135,9 +135,9 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Helpers\PasswordHelper.cs" />
-    <Compile Include="Migrations\202508072308211_createschema.cs" />
-    <Compile Include="Migrations\202508072308211_createschema.Designer.cs">
-      <DependentUpon>202508072308211_createschema.cs</DependentUpon>
+    <Compile Include="Migrations\202508090327151_createschema.cs" />
+    <Compile Include="Migrations\202508090327151_createschema.Designer.cs">
+      <DependentUpon>202508090327151_createschema.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Admin.cs" />
@@ -233,7 +233,7 @@
     <Content Include="Views\Clerk\Report.cshtml" />
     <Content Include="Views\Clerk\Profile.cshtml" />
     <Content Include="Views\Clerk\InwardLetters.cshtml" />
-    <Content Include="Views\Staff\Letter.cshtml" />
+    <Content Include="Views\Staff\InwardLetter.cshtml" />
     <Content Include="Views\Staff\Profile.cshtml" />
     <Content Include="Views\Staff\Report.cshtml" />
     <Content Include="Views\Shared\_StaffLayout.cshtml" />
@@ -242,6 +242,7 @@
     <Content Include="Views\Clerk\OutwardLetter.cshtml" />
     <Content Include="Views\Staff\ResetPassword.cshtml" />
     <Content Include="Views\Clerk\ResetPassword.cshtml" />
+    <Content Include="Views\Staff\OutwardLetter.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap.rtl.min.css.map" />
@@ -274,8 +275,8 @@
     <Folder Include="Views\OutwardLetter\" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202508072308211_createschema.resx">
-      <DependentUpon>202508072308211_createschema.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202508090327151_createschema.resx">
+      <DependentUpon>202508090327151_createschema.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

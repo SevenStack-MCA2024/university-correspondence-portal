@@ -20,13 +20,56 @@
     </div>
 }
 
+
+<!-- 🔍 Search and Filters -->
+<div class="d-flex align-items-center mb-3">
+    <input type="text" id="searchBox" class="form-control me-2" placeholder="Search..." style="max-width: 250px;" />
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-2">
+        <input type="text" id="senderNameFilter" class="form-control" placeholder="Sender Name" />
+    </div>
+    @*<div class="col-md-2">
+            <select id="receiverDeptFilter" class="form-control">
+                <option value="">All Departments</option>
+                @foreach (var dept in ViewBag.DepartmentList)
+                {
+                    <option value="@dept.DepartmentName">@dept.DepartmentName</option>
+                }
+            </select>
+        </div>*@
+
+    <div class="col-md-2">
+        <select id="receiverDeptFilter" class="form-control">
+            <option value="">All Departments</option>
+            <!-- options will be populated by JS -->
+        </select>
+    </div>
+
+
+    <div class="col-md-2">
+        <input type="text" id="receiverNameFilter" class="form-control" placeholder="Receiver Name" />
+    </div>
+    <div class="col-md-2">
+        <input type="date" id="fromDateFilter" class="form-control" />
+    </div>
+    <div class="col-md-2">
+        <input type="date" id="toDateFilter" class="form-control" />
+    </div>
+    <div class="col-md-2">
+        <button class="btn btn-primary me-2" id="applyFilterBtn">Apply Filter</button>
+        <button class="btn btn-secondary" id="clearFilterBtn">Clear</button>
+    </div>
+</div>
+
 <div class="text-end mb-3">
     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#outwardLetterModal">
         ➕ Add Outward Letter
     </button>
 </div>
 
-<table class="table table-bordered table-hover table-striped" id="outwardTable">
+<table class="table table-bordered table-hover table-striped" id="outwardLetterTable">
     <thead class="table-success">
         <tr>
             <th>Letter No</th>
@@ -46,19 +89,31 @@
         {
             foreach (var letter in Model.OutwardLetters)
             {
-                <tr data-letter-id="@letter.LetterID">
-                    <td class="td-letterno">@letter.LetterNo</td>
-                    <td class="td-outwardno">@letter.OutwardNumber</td>
-                    <td>@(letter.Date?.ToString("dd/MM/yyyy"))</td>
+                <tr data-letter-id="@letter.LetterID"
+                    data-letterno="@letter.LetterNo"
+                    data-outwardno="@letter.OutwardNumber"
+                    data-date="@(letter.Date?.ToString("dd/MM/yyyy"))"
+                    data-time="@(letter.Time.HasValue ? letter.Time.Value.ToString(@"hh\:mm") : "")"
+                    data-sender="@letter.SenderName"
+                    data-receivername="@letter.ReceiverName"
+                    data-receiverdept="@letter.ReceiverDepartment"
+                    data-subject="@letter.Subject"
+                    data-reference="@letter.ReferenceID"
+                    data-deliverymode="@letter.DeliveryMode"
+                    data-priority="@letter.Priority"
+                    data-remarks="@letter.Remarks">
+                    <td>@letter.LetterNo</td>
+                    <td>@letter.OutwardNumber</td>
+                    <td>@(letter.Date?.ToString("yyyy-MM-dd"))</td>
                     <td>@(letter.Time.HasValue ? letter.Time.Value.ToString(@"hh\:mm") : "")</td>
-                    <td class="td-sender">@letter.SenderName</td>
-                    <td class="td-receivername">@letter.ReceiverName</td>
-                    <td class="td-receiverdept">@letter.ReceiverDepartment</td>
+                    <td>@letter.SenderName</td>
+                    <td>@letter.ReceiverName</td>
+                    <td>@letter.ReceiverDepartment</td>
                     <td>@letter.Subject</td>
-                    <td class="td-reference">@letter.ReferenceID</td>
+                    <td>@letter.ReferenceID</td>
                     <td>
-                        <button class="btn btn-sm btn-info btn-view" type="button" data-letter-id="@letter.LetterID">👁 View</button>
-                        <button class="btn btn-sm btn-warning btn-inline-edit" type="button">✏ Edit</button>
+                        <button type="button" class="btn btn-info btn-sm view-letter">👁 View</button>
+                        <button type="button" class="btn btn-warning btn-sm edit-letter">✏ Edit</button>
                     </td>
                 </tr>
             }
@@ -72,50 +127,8 @@
     </tbody>
 </table>
 
-<!-- ---------- Shared View Modal (single) ---------- -->
-<div class="modal fade" id="viewModal" tabindex="-1" aria-labelledby="viewModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-info text-white">
-                <h5 class="modal-title" id="viewModalLabel">📄 View Outward Letter</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <!-- placeholders filled by JS -->
-                <dl class="row">
-                    <dt class="col-sm-4">Letter No</dt>
-                    <dd class="col-sm-8" id="vLetterNo"></dd>
-                    <dt class="col-sm-4">Outward Number</dt>
-                    <dd class="col-sm-8" id="vOutwardNo"></dd>
-                    <dt class="col-sm-4">Date</dt>
-                    <dd class="col-sm-8" id="vDate"></dd>
-                    <dt class="col-sm-4">Time</dt>
-                    <dd class="col-sm-8" id="vTime"></dd>
-                    <dt class="col-sm-4">Delivery Mode</dt>
-                    <dd class="col-sm-8" id="vDelivery"></dd>
-                    <dt class="col-sm-4">Reference ID</dt>
-                    <dd class="col-sm-8" id="vReference"></dd>
-                    <dt class="col-sm-4">Subject</dt>
-                    <dd class="col-sm-8" id="vSubject"></dd>
-                    <dt class="col-sm-4">Remarks</dt>
-                    <dd class="col-sm-8" id="vRemarks"></dd>
-                    <dt class="col-sm-4">Priority</dt>
-                    <dd class="col-sm-8" id="vPriority"></dd>
-                    <dt class="col-sm-4">Sender Department</dt>
-                    <dd class="col-sm-8" id="vSenderDept"></dd>
-                    <dt class="col-sm-4">Sender Name</dt>
-                    <dd class="col-sm-8" id="vSenderName"></dd>
-                    <dt class="col-sm-4">Receiver Name</dt>
-                    <dd class="col-sm-8" id="vReceiverName"></dd>
-                    <dt class="col-sm-4">Receiver Department</dt>
-                    <dd class="col-sm-8" id="vReceiverDept"></dd>
-                    <dt class="col-sm-4">Department ID</dt>
-                    <dd class="col-sm-8" id="vDepartmentID"></dd>
-                </dl>
-            </div>
-        </div>
-    </div>
-</div>
+
+
 
 
 <!-- ➕ Add Outward Letter Modal -->
@@ -188,7 +201,7 @@
                             }
                             <option value="Other">Other</option>
                         </select>
-                        <input type="text" name="ReceiverDepartmentOther" class="form-control mt-2 d-none" id="receiverDeptOther" placeholder="Enter external department" />
+                        <input type="text" name="ReceiverDepartment" class="form-control mt-2 d-none" id="receiverDeptOther" placeholder="Enter external department" />
                     </div>
 
                     <div class="col-md-6">
@@ -208,89 +221,525 @@
     </div>
 </div>
 
+<!-- 👁 View Outward Letter Modal -->
+<div class="modal fade" id="viewOutwardLetterModal" tabindex="-1" aria-labelledby="viewOutwardLetterModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="viewOutwardLetterModalLabel">Outward Letter Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-bordered">
+                    <tbody>
+                        <tr><th>Letter No</th><td id="viewLetterNo"></td></tr>
+                        <tr><th>Outward No</th><td id="viewOutwardNo"></td></tr>
+                        <tr><th>Date</th><td id="viewDate"></td></tr>
+                        <tr><th>Time</th><td id="viewTime"></td></tr>
+                        <tr><th>Sender Name</th><td id="viewSender"></td></tr>
+                        <tr><th>Receiver Name</th><td id="viewReceiverName"></td></tr>
+                        <tr><th>Receiver Department</th><td id="viewReceiverDept"></td></tr>
+                        <tr><th>Subject</th><td id="viewSubject"></td></tr>
+                        <tr><th>Reference ID</th><td id="viewReference"></td></tr>
+                        <tr><th>Delivery Mode</th><td id="viewDeliveryMode"></td></tr>
+                        <tr><th>Priority</th><td id="viewPriority"></td></tr>
+                        <tr><th>Remarks</th><td id="viewRemarks"></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ✏ Edit Outward Letter Modal -->
+<div class="modal fade" id="editOutwardLetterModal" tabindex="-1" aria-labelledby="editOutwardLetterModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post" action="@Url.Action("EditOutwardLetter", "Clerk")" id="editOutwardLetterForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="LetterID" id="editLetterID" />
+                <input type="hidden" name="DepartmentID" id="editDepartmentID" /> <!-- Keep Department ID -->
+
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title" id="editOutwardLetterModalLabel">Edit Outward Letter</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Letter No</label>
+                        <input type="text" name="LetterNo" id="editLetterNo" class="form-control" required />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Sender Name</label>
+                        <select name="AssignedStaffID" id="editSenderName" class="form-select">
+                            @foreach (var staff in ViewBag.StaffList)
+                            {
+                                <option value="@staff.StaffID">@staff.Name</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Receiver Department</label>
+                        <select name="ReceiverDepartment" id="editReceiverDeptDropdown" class="form-select">
+                            @foreach (var dept in ViewBag.DepartmentList)
+                            {
+                                <option value="@dept.DepartmentName">@dept.DepartmentName</option>
+                            }
+                            <option value="Other">Other</option>
+                        </select>
+                        <input type="text" name="ReceiverDepartmentOther" id="editReceiverDeptOther" class="form-control mt-2 d-none" placeholder="Enter external department" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Receiver Name</label>
+                        <input type="text" name="ReceiverName" id="editReceiverName" class="form-control" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Reference ID</label>
+                        <input type="text" name="ReferenceID" id="editReferenceID" class="form-control" />
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label">Remarks</label>
+                        <textarea name="Remarks" id="editRemarks" class="form-control"></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">💾 Save Changes</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">❌ Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
 <div class="alert alert-success mt-3 d-none" id="outwardSuccessAlert">
     ✅ Outward Letter submitted successfully.
 </div>
 
+
+
+
+
 @section Scripts {
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            let departmentOptions = @foreach (var dept in ViewBag.DepartmentList) {<text><option value="@dept.DepartmentName">@dept.DepartmentName</option></text>} + '<option value="Other">Other</option>';
-            let staffOptions = @foreach (var staff in ViewBag.StaffList) {<text><option value="@staff.Name">@staff.Name</option></text>};
+            // Receiver Dept "Other" input toggle (Add modal)
+            const dropdown = document.getElementById("receiverDeptDropdown");
+            const otherInput = document.getElementById("receiverDeptOther");
 
-            document.querySelector("#outwardTable").addEventListener("click", function (e) {
-                let editBtn = e.target.closest(".btn-inline-edit");
-                let saveBtn = e.target.closest(".btn-inline-save");
-                let cancelBtn = e.target.closest(".btn-inline-cancel");
-
-                if (editBtn) {
-                    let row = editBtn.closest("tr");
-                    row.classList.add("editing");
-
-                    let letterNo = row.querySelector(".td-letterno").textContent.trim();
-                    let senderName = row.querySelector(".td-sender").textContent.trim();
-                    let receiverName = row.querySelector(".td-receivername").textContent.trim();
-                    let receiverDept = row.querySelector(".td-receiverdept").textContent.trim();
-                    let referenceID = row.querySelector(".td-reference").textContent.trim();
-
-                    row.querySelector(".td-letterno").innerHTML = <input type="text" class="form-control form-control-sm" value="${letterNo}">;
-                    row.querySelector(".td-sender").innerHTML = <select class="form-select form-select-sm">${staffOptions}</select>;
-                    row.querySelector(".td-sender select").value = senderName;
-                    row.querySelector(".td-receivername").innerHTML = <input type="text" class="form-control form-control-sm" value="${receiverName}">;
-                    row.querySelector(".td-receiverdept").innerHTML = <select class="form-select form-select-sm">${departmentOptions}</select>;
-                    row.querySelector(".td-receiverdept select").value = receiverDept;
-                    row.querySelector(".td-reference").innerHTML = <input type="text" class="form-control form-control-sm" value="${referenceID}">;
-
-                    editBtn.outerHTML = <button class="btn btn-sm btn-success btn-inline-save">💾 Save</button> <button class="btn btn-sm btn-secondary btn-inline-cancel">❌ Cancel</button>;
+            dropdown.addEventListener("change", function () {
+                if (dropdown.value === "Other") {
+                    otherInput.classList.remove("d-none");
+                } else {
+                    otherInput.classList.add("d-none");
+                    otherInput.value = '';
                 }
+            });
 
-                if (cancelBtn) {
-                    location.reload(); // easiest way to reset the row to original state
+            if (dropdown.value === "Other") {
+                otherInput.classList.remove("d-none");
+            }
+
+            // Add form validation
+            document.getElementById('outwardLetterForm').addEventListener('submit', function (e) {
+                if (dropdown.value === "Other" && otherInput.value.trim() === "") {
+                    alert("Please enter a department name when selecting 'Other'.");
+                    otherInput.focus();
+                    e.preventDefault();
+                    return;
                 }
+            });
 
-                if (saveBtn) {
-                    let row = saveBtn.closest("tr");
-                    let id = row.getAttribute("data-letter-id");
-                    let updatedData = {
-                        LetterID: id,
-                        LetterNo: row.querySelector(".td-letterno input").value.trim(),
-                        SenderName: row.querySelector(".td-sender select").value,
-                        ReceiverName: row.querySelector(".td-receivername input").value.trim(),
-                        ReceiverDepartment: row.querySelector(".td-receiverdept select").value,
-                        ReferenceID: row.querySelector(".td-reference input").value.trim()
-                    };
+            // View modal button click
+            document.querySelectorAll('.view-letter').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const row = this.closest('tr');
+                    document.getElementById('viewLetterNo').textContent = row.dataset.letterno;
+                    document.getElementById('viewOutwardNo').textContent = row.dataset.outwardno;
+                    document.getElementById('viewDate').textContent = row.dataset.date;
+                    document.getElementById('viewTime').textContent = row.dataset.time;
+                    document.getElementById('viewSender').textContent = row.dataset.sender;
+                    document.getElementById('viewReceiverName').textContent = row.dataset.receivername;
+                    document.getElementById('viewReceiverDept').textContent = row.dataset.receiverdept;
+                    document.getElementById('viewSubject').textContent = row.dataset.subject;
+                    document.getElementById('viewReference').textContent = row.dataset.reference;
+                    document.getElementById('viewDeliveryMode').textContent = row.dataset.deliverymode;
+                    document.getElementById('viewPriority').textContent = row.dataset.priority;
+                    document.getElementById('viewRemarks').textContent = row.dataset.remarks;
 
-                    fetch('@Url.Action("UpdateOutwardLetterInline", "Clerk")', {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val()
-                        },
-                        body: JSON.stringify(updatedData)
-                    })
+                    var modal = new bootstrap.Modal(document.getElementById('viewOutwardLetterModal'));
+                    modal.show();
+                });
+            });
 
+            // Edit modal "Other" toggle and populate
+            const editDeptDropdown = document.getElementById("editReceiverDeptDropdown");
+            const editDeptOther = document.getElementById("editReceiverDeptOther");
 
+            editDeptDropdown.addEventListener("change", function () {
+                if (editDeptDropdown.value === "Other") {
+                    editDeptOther.classList.remove("d-none");
+                } else {
+                    editDeptOther.classList.add("d-none");
+                    editDeptOther.value = '';
+                }
+            });
 
+            document.querySelectorAll('.edit-letter').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const row = this.closest('tr');
 
-                    .then(r => r.json())
-                    .then(res => {
-                        if (res.success) {
-                            row.querySelector(".td-letterno").textContent = res.data.LetterNo;
-                            row.querySelector(".td-sender").textContent = res.data.SenderName;
-                            row.querySelector(".td-receivername").textContent = res.data.ReceiverName;
-                            row.querySelector(".td-receiverdept").textContent = res.data.ReceiverDepartment;
-                            row.querySelector(".td-reference").textContent = res.data.ReferenceID;
-                            saveBtn.closest("td").innerHTML = <button class="btn btn-sm btn-info btn-view" type="button" data-letter-id="${id}">👁 View</button> <button class="btn btn-sm btn-warning btn-inline-edit" type="button">✏ Edit</button>;
-                        } else {
-                            alert(res.message || "Error saving changes");
+                    document.getElementById('editLetterID').value = row.dataset.letterId;
+                    document.getElementById('editLetterNo').value = row.dataset.letterno;
+
+                    // Set sender select by matching option text with data-sender
+                    let senderSelect = document.getElementById('editSenderName');
+                    [...senderSelect.options].forEach(opt => {
+                        if (opt.text === row.dataset.sender) {
+                            senderSelect.value = opt.value;
                         }
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        alert("Error updating letter.");
+                    });
+
+                    document.getElementById('editReceiverName').value = row.dataset.receivername;
+                    document.getElementById('editReferenceID').value = row.dataset.reference;
+                    document.getElementById('editRemarks').value = row.dataset.remarks;
+
+                    let deptDropdown = document.getElementById('editReceiverDeptDropdown');
+                    let deptFound = false;
+                    [...deptDropdown.options].forEach(opt => {
+                        if (opt.value === row.dataset.receiverdept) {
+                            deptDropdown.value = opt.value;
+                            deptFound = true;
+                        }
+                    });
+                    if (!deptFound) {
+                        deptDropdown.value = "Other";
+                        editDeptOther.classList.remove("d-none");
+                        editDeptOther.value = row.dataset.receiverdept;
+                    } else {
+                        editDeptOther.classList.add("d-none");
+                    }
+
+                    var modal = new bootstrap.Modal(document.getElementById('editOutwardLetterModal'));
+                    modal.show();
+                });
+            });
+
+            // Edit form validation
+            document.getElementById('editOutwardLetterForm').addEventListener('submit', function (e) {
+                if (editDeptDropdown.value === "Other" && editDeptOther.value.trim() === "") {
+                    alert("Please enter department name when selecting 'Other'.");
+                    e.preventDefault();
+                    return;
+                }
+            });
+
+            // 🔍 Search box: filter on Enter key - filters all visible columns + ignores hidden rows
+            document.getElementById("searchBox").addEventListener("keydown", function (e) {
+                if (e.key === "Enter") {
+                    const searchValue = this.value.toLowerCase().trim();
+                    const rows = document.querySelectorAll("#outwardLetterTable tbody tr");
+
+                    rows.forEach(row => {
+                        // Search all text in the row (visible columns only)
+                        const rowText = [...row.cells].map(c => c.innerText.toLowerCase()).join(" ");
+                        row.style.display = rowText.includes(searchValue) ? "" : "none";
                     });
                 }
+            });
+
+            // Apply filter button: column-wise filter
+            document.getElementById("applyFilterBtn").addEventListener("click", function () {
+                const senderFilter = document.getElementById("senderNameFilter").value.toLowerCase().trim();
+                const receiverDeptFilter = document.getElementById("receiverDeptFilter").value.toLowerCase().trim();
+                const receiverNameFilter = document.getElementById("receiverNameFilter").value.toLowerCase().trim();
+                const fromDateFilter = document.getElementById("fromDateFilter").value;
+                const toDateFilter = document.getElementById("toDateFilter").value;
+
+                const rows = document.querySelectorAll("#outwardLetterTable tbody tr");
+
+                rows.forEach(row => {
+                    const senderCell = row.cells[4].innerText.toLowerCase();
+                    const receiverDeptCell = row.cells[6].innerText.toLowerCase();
+                    const receiverNameCell = row.cells[5].innerText.toLowerCase();
+                    const dateCellRaw = row.cells[2].innerText; // format dd/MM/yyyy in your data attributes
+                    let dateCell = null;
+
+                    // Convert dd/MM/yyyy to yyyy-MM-dd for comparison (normalize date)
+                    if (dateCellRaw) {
+                        const parts = dateCellRaw.split('/');
+                        if (parts.length === 3) {
+                            dateCell = parts[2] + '-' + parts[1].padStart(2, '0') + '-' + parts[0].padStart(2, '0');
+                        }
+                    }
+
+                    let show = true;
+
+                    if (senderFilter && !senderCell.includes(senderFilter)) show = false;
+                    if (receiverDeptFilter && receiverDeptCell !== receiverDeptFilter) show = false;
+                    if (receiverNameFilter && !receiverNameCell.includes(receiverNameFilter)) show = false;
+
+                    if (fromDateFilter && dateCell && dateCell < fromDateFilter) show = false;
+                    if (toDateFilter && dateCell && dateCell > toDateFilter) show = false;
+
+                    row.style.display = show ? "" : "none";
+                });
+            });
+
+            // Clear filter button resets inputs and shows all rows
+            document.getElementById("clearFilterBtn").addEventListener("click", function () {
+                document.getElementById("senderNameFilter").value = "";
+                document.getElementById("receiverDeptFilter").value = "";
+                document.getElementById("receiverNameFilter").value = "";
+                document.getElementById("fromDateFilter").value = "";
+                document.getElementById("toDateFilter").value = "";
+                document.getElementById("searchBox").value = "";
+
+                const rows = document.querySelectorAll("#outwardLetterTable tbody tr");
+                rows.forEach(row => row.style.display = "");
+            });
+        });
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Get unique Receiver Department values from table rows
+            const deptSet = new Set();
+
+            document.querySelectorAll("#outwardLetterTable tbody tr").forEach(row => {
+                const dept = row.cells[6].innerText.trim();
+                if (dept) {
+                    deptSet.add(dept);
+                }
+            });
+
+            // Sort the departments alphabetically
+            const sortedDepts = Array.from(deptSet).sort();
+
+            // Populate the dropdown
+            const receiverDeptFilter = document.getElementById("receiverDeptFilter");
+            sortedDepts.forEach(dept => {
+                const option = document.createElement("option");
+                option.value = dept;
+                option.textContent = dept;
+                receiverDeptFilter.appendChild(option);
             });
         });
     </script>
 }
+
+
+
+
+@*@section Scripts {
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                const dropdown = document.getElementById("receiverDeptDropdown");
+                const otherInput = document.getElementById("receiverDeptOther");
+
+                dropdown.addEventListener("change", function () {
+                    if (dropdown.value === "Other") {
+                        otherInput.classList.remove("d-none");
+                    } else {
+                        otherInput.classList.add("d-none");
+                        otherInput.value = '';
+                    }
+                });
+
+                if (dropdown.value === "Other") {
+                    otherInput.classList.remove("d-none");
+                }
+
+                document.getElementById('outwardLetterForm').addEventListener('submit', function (e) {
+                    if (dropdown.value === "Other" && otherInput.value.trim() === "") {
+                        alert("Please enter a department name when selecting 'Other'.");
+                        otherInput.focus();
+                        e.preventDefault();
+                        return;
+                    }
+
+                    setTimeout(function () {
+                        $('#outwardLetterModal').modal('hide');
+                        $('#outwardLetterForm')[0].reset();
+                        $('#receiverDeptOther').addClass('d-none');
+                        $('#outwardSuccessAlert').removeClass('d-none');
+                        setTimeout(() => $('#outwardSuccessAlert').addClass('d-none'), 5000);
+                    }, 500);
+                });
+
+                // View button click event
+                document.querySelectorAll('.view-letter').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        const row = this.closest('tr');
+                        document.getElementById('viewLetterNo').textContent = row.dataset.letterno;
+                        document.getElementById('viewOutwardNo').textContent = row.dataset.outwardno;
+                        document.getElementById('viewDate').textContent = row.dataset.date;
+                        document.getElementById('viewTime').textContent = row.dataset.time;
+                        document.getElementById('viewSender').textContent = row.dataset.sender;
+                        document.getElementById('viewReceiverName').textContent = row.dataset.receivername;
+                        document.getElementById('viewReceiverDept').textContent = row.dataset.receiverdept;
+                        document.getElementById('viewSubject').textContent = row.dataset.subject;
+                        document.getElementById('viewReference').textContent = row.dataset.reference;
+                        document.getElementById('viewDeliveryMode').textContent = row.dataset.deliverymode;
+                        document.getElementById('viewPriority').textContent = row.dataset.priority;
+                        document.getElementById('viewRemarks').textContent = row.dataset.remarks;
+
+                        var modal = new bootstrap.Modal(document.getElementById('viewOutwardLetterModal'));
+                        modal.show();
+                    });
+                });
+            });
+        </script>
+
+
+
+
+        <script>
+            // Toggle "Other" department input
+            document.addEventListener("DOMContentLoaded", function () {
+                const deptDropdown = document.getElementById("editReceiverDeptDropdown");
+                const deptOtherInput = document.getElementById("editReceiverDeptOther");
+
+                deptDropdown.addEventListener("change", function () {
+                    if (this.value === "Other") {
+                        deptOtherInput.classList.remove("d-none");
+                    } else {
+                        deptOtherInput.classList.add("d-none");
+                        deptOtherInput.value = "";
+                    }
+                });
+            });
+        </script>
+
+
+
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                // Handle Other dept toggle in Edit modal
+                const editDeptDropdown = document.getElementById("editReceiverDeptDropdown");
+                const editDeptOther = document.getElementById("editReceiverDeptOther");
+
+                editDeptDropdown.addEventListener("change", function () {
+                    if (editDeptDropdown.value === "Other") {
+                        editDeptOther.classList.remove("d-none");
+                    } else {
+                        editDeptOther.classList.add("d-none");
+                        editDeptOther.value = '';
+                    }
+                });
+
+                // Populate Edit Modal on click
+                document.querySelectorAll('.edit-letter').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        const row = this.closest('tr');
+
+                        document.getElementById('editLetterID').value = row.dataset.letterId;
+                        document.getElementById('editLetterNo').value = row.dataset.letterno;
+                        document.getElementById('editSenderName').value = [...document.getElementById('editSenderName').options]
+                            .find(opt => opt.text === row.dataset.sender)?.value || '';
+
+                        document.getElementById('editReceiverName').value = row.dataset.receivername;
+                        document.getElementById('editReferenceID').value = row.dataset.reference;
+                        document.getElementById('editRemarks').value = row.dataset.remarks;
+
+                        // Set Receiver Department dropdown
+                        const deptDropdown = document.getElementById('editReceiverDeptDropdown');
+                        let deptFound = false;
+                        [...deptDropdown.options].forEach(opt => {
+                            if (opt.value === row.dataset.receiverdept) {
+                                deptDropdown.value = opt.value;
+                                deptFound = true;
+                            }
+                        });
+                        if (!deptFound) {
+                            deptDropdown.value = "Other";
+                            editDeptOther.classList.remove("d-none");
+                            editDeptOther.value = row.dataset.receiverdept;
+                        } else {
+                            editDeptOther.classList.add("d-none");
+                        }
+
+                        var modal = new bootstrap.Modal(document.getElementById('editOutwardLetterModal'));
+                        modal.show();
+                    });
+                });
+
+                // Submit Edit Form
+                document.getElementById('editOutwardLetterForm').addEventListener('submit', function (e) {
+                    if (editDeptDropdown.value === "Other" && editDeptOther.value.trim() === "") {
+                        alert("Please enter department name when selecting 'Other'.");
+                        e.preventDefault();
+                        return;
+                    }
+                });
+            });
+        </script>
+
+
+        <script>
+            // 🔍 Search on Enter key
+            document.getElementById("searchBox").addEventListener("keypress", function (e) {
+                if (e.key === "Enter") {
+                    var searchValue = this.value.toLowerCase();
+                    var rows = document.querySelectorAll("#outwardLetterTable tbody tr");
+
+                    rows.forEach(function (row) {
+                        var rowText = row.innerText.toLowerCase();
+                        row.style.display = rowText.includes(searchValue) ? "" : "none";
+                    });
+                }
+            });
+
+            // 📊 Apply Filter
+            document.getElementById("applyFilterBtn").addEventListener("click", function () {
+                var senderName = document.getElementById("senderNameFilter").value.toLowerCase();
+                var receiverDept = document.getElementById("receiverDeptFilter").value.toLowerCase();
+                var receiverName = document.getElementById("receiverNameFilter").value.toLowerCase();
+                var fromDate = document.getElementById("fromDateFilter").value;
+                var toDate = document.getElementById("toDateFilter").value;
+
+                var rows = document.querySelectorAll("#outwardLetterTable tbody tr");
+
+                rows.forEach(function (row) {
+                    var senderCell = row.cells[4].innerText.toLowerCase();
+                    var receiverNameCell = row.cells[5].innerText.toLowerCase();
+                    var receiverDeptCell = row.cells[6].innerText.toLowerCase();
+                    var dateCell = row.cells[2].innerText;
+
+                    var showRow = true;
+
+                    if (senderName && !senderCell.includes(senderName)) showRow = false;
+                    if (receiverDept && receiverDeptCell !== receiverDept) showRow = false;
+                    if (receiverName && !receiverNameCell.includes(receiverName)) showRow = false;
+                    if (fromDate && dateCell < fromDate) showRow = false;
+                    if (toDate && dateCell > toDate) showRow = false;
+
+                    row.style.display = showRow ? "" : "none";
+                });
+            });
+
+            // 🔄 Clear Filter
+            document.getElementById("clearFilterBtn").addEventListener("click", function () {
+                document.getElementById("senderNameFilter").value = "";
+                document.getElementById("receiverDeptFilter").value = "";
+                document.getElementById("receiverNameFilter").value = "";
+                document.getElementById("fromDateFilter").value = "";
+                document.getElementById("toDateFilter").value = "";
+                document.getElementById("searchBox").value = "";
+
+                var rows = document.querySelectorAll("#outwardLetterTable tbody tr");
+                rows.forEach(function (row) {
+                    row.style.display = "";
+                });
+            });
+        </script>
+
+    }*@
