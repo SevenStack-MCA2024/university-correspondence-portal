@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Data.Entity.Infrastructure;
+using System.IO;
 using System.Linq;
 using System.Web.Mvc;
+using System.Web.Script.Serialization;
 using UniversityCorrespondencePortal.Models;
 using UniversityCorrespondencePortal.Models.ViewModels;
-using System.IO;
-using System.Web.Script.Serialization;
 
 namespace UniversityCorrespondencePortal.Controllers
 {
@@ -113,7 +115,6 @@ namespace UniversityCorrespondencePortal.Controllers
         }
 
         // =========================== STAFF ===========================
-
         public ActionResult AddStaff(string searchTerm, string designationFilter, string departmentFilter, string statusFilter, int? editId)
         {
             var staffQuery = db.Staffs.AsQueryable();
@@ -189,12 +190,30 @@ namespace UniversityCorrespondencePortal.Controllers
         {
             try
             {
+                // 1️⃣ Always set default password before validation so [Required] passes
+                if (string.IsNullOrWhiteSpace(staff.PasswordHash))
+                {
+                    staff.PasswordHash = PasswordHelper.HashPassword("0000");
+                    staff.MustResetPassword = true;
+                }
+
+                // 2️⃣ Manual DataAnnotations validation
+                var validationResults = new List<ValidationResult>();
+                var validationContext = new ValidationContext(staff, serviceProvider: null, items: null);
+                bool isValid = Validator.TryValidateObject(staff, validationContext, validationResults, true);
+
+                if (!isValid)
+                {
+                    var errors = string.Join(" ", validationResults.Select(vr => vr.ErrorMessage));
+                    throw new ValidationException(errors);
+                }
+
+                // 3️⃣ Check for existing email or phone
                 var existingStaff = db.Staffs.FirstOrDefault(s =>
                     s.Email == staff.Email || s.Phone == staff.Phone);
 
                 if (existingStaff != null)
                 {
-                    // Check if already linked to this department
                     bool alreadyAssigned = db.StaffDepartments.Any(sd =>
                         sd.StaffID == existingStaff.StaffID && sd.DepartmentID == DepartmentID);
 
@@ -210,13 +229,12 @@ namespace UniversityCorrespondencePortal.Controllers
                     }
                     else
                     {
-                        TempData["Error"] = "Staff already exists and is already assigned to this department.";
+                        throw new InvalidOperationException("Staff already exists and is already assigned to this department.");
                     }
                 }
                 else
                 {
-                    staff.PasswordHash = PasswordHelper.HashPassword("0000");
-                    staff.MustResetPassword = true; // make sure it's true
+                    // 4️⃣ Save new staff
                     db.Staffs.Add(staff);
                     db.SaveChanges();
 
@@ -226,57 +244,77 @@ namespace UniversityCorrespondencePortal.Controllers
                         DepartmentID = DepartmentID
                     });
                     db.SaveChanges();
+
                     TempData["Message"] = "Staff added successfully.";
                 }
             }
-            catch (Exception ex)
+            catch (ValidationException vex)
             {
-                TempData["Error"] = "Error: " + ex.Message;
+                TempData["Error"] = vex.Message;
+            }
+            catch (InvalidOperationException ioex)
+            {
+                TempData["Error"] = ioex.Message;
+            }
+            catch (DbUpdateException)
+            {
+                TempData["Error"] = "A database error occurred. Please check your data.";
+            }
+            catch (Exception)
+            {
+                TempData["Error"] = "An unexpected error occurred. Please contact the administrator.";
             }
 
             return RedirectToAction("AddStaff");
         }
 
-
         // =========================== CLERK ===========================
 
         public ActionResult AddClerk(string searchTerm, string departmentFilter, string editId)
         {
-            var clerks = db.Clerks.Include("Department").AsQueryable();
-
-            if (!string.IsNullOrEmpty(searchTerm))
+            try
             {
-                clerks = clerks.Where(c =>
-                    c.Name.Contains(searchTerm) ||
-                    c.ClerkID.Contains(searchTerm) ||
-                    c.Email.Contains(searchTerm));
-            }
+                var clerks = db.Clerks.Include("Department").AsQueryable();
 
-            if (!string.IsNullOrEmpty(departmentFilter))
-            {
-                clerks = clerks.Where(c => c.Department.DepartmentID == departmentFilter);
-            }
-
-            ViewBag.DepartmentList = db.Departments.Select(d => new SelectListItem
-            {
-                Value = d.DepartmentID,
-                Text = d.DepartmentName
-            }).ToList();
-
-            ViewBag.EditID = editId;
-
-            var viewModel = clerks.OrderBy(c => c.Name)
-                .Select(c => new ClerkViewModel
+                if (!string.IsNullOrEmpty(searchTerm))
                 {
-                    ClerkID = c.ClerkID,
-                    Name = c.Name,
-                    Email = c.Email,
-                    Phone = c.Phone,
-                    DepartmentName = c.Department.DepartmentName,
-                    IsActive = c.IsActive
+                    clerks = clerks.Where(c =>
+                        c.Name.Contains(searchTerm) ||
+                        c.ClerkID.Contains(searchTerm) ||
+                        c.Email.Contains(searchTerm));
+                }
+
+                if (!string.IsNullOrEmpty(departmentFilter))
+                {
+                    clerks = clerks.Where(c => c.Department.DepartmentID == departmentFilter);
+                }
+
+                ViewBag.DepartmentList = db.Departments.Select(d => new SelectListItem
+                {
+                    Value = d.DepartmentID,
+                    Text = d.DepartmentName
                 }).ToList();
 
-            return View(viewModel);
+                ViewBag.EditID = editId;
+
+                var viewModel = clerks.OrderBy(c => c.Name)
+                    .Select(c => new ClerkViewModel
+                    {
+                        ClerkID = c.ClerkID,
+                        Name = c.Name,
+                        Email = c.Email,
+                        Phone = c.Phone,
+                        DepartmentName = c.Department.DepartmentName,
+                        IsActive = c.IsActive
+                    }).ToList();
+
+                return View(viewModel);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Failed to load clerk list. Please try again later. Error: " + ex.Message;
+                return RedirectToAction("ErrorPage"); // Optional: redirect to a friendly error page
+            }
         }
 
         [HttpPost]
@@ -285,22 +323,47 @@ namespace UniversityCorrespondencePortal.Controllers
         {
             try
             {
-                clerk.PasswordHash = PasswordHelper.HashPassword("0000"); // ✅ hashed password
-                clerk.MustResetPassword = true;
+                // Basic validation
+                if (clerk == null)
+                    throw new ArgumentNullException(nameof(clerk), "Clerk details are required.");
 
+                if (string.IsNullOrWhiteSpace(clerk.ClerkID) || !System.Text.RegularExpressions.Regex.IsMatch(clerk.ClerkID, "^[a-zA-Z0-9]+$"))
+                    throw new ArgumentException("Clerk ID must contain only letters and numbers.");
+
+                if (string.IsNullOrWhiteSpace(clerk.Name))
+                    throw new ArgumentException("Clerk name is required.");
+
+                if (!new EmailAddressAttribute().IsValid(clerk.Email))
+                    throw new ArgumentException("Invalid email format.");
+
+                if (string.IsNullOrWhiteSpace(clerk.DepartmentID))
+                    throw new ArgumentException("Department selection is required.");
+
+                // Default setup
+                clerk.PasswordHash = PasswordHelper.HashPassword("0000");
+                clerk.MustResetPassword = true;
                 clerk.IsActive = true;
+
                 db.Clerks.Add(clerk);
                 db.SaveChanges();
+
                 TempData["Message"] = "Clerk added successfully.";
+            }
+            catch (ArgumentException argEx)
+            {
+                TempData["Error"] = "Validation error: " + argEx.Message;
+            }
+            catch (DbUpdateException dbEx)
+            {
+                TempData["Error"] = "Database update failed. Please check the entered data. Details: " + dbEx.InnerException?.Message ?? dbEx.Message;
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "Error adding clerk: " + ex.Message;
+                TempData["Error"] = "Unexpected error while adding clerk: " + ex.Message;
             }
 
             return RedirectToAction("AddClerk");
         }
-
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -308,12 +371,18 @@ namespace UniversityCorrespondencePortal.Controllers
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(ClerkID))
+                    throw new ArgumentException("Clerk ID is required for update.");
+
                 var clerk = db.Clerks.FirstOrDefault(c => c.ClerkID == ClerkID);
                 if (clerk == null)
-                {
-                    TempData["Error"] = "Clerk not found.";
-                    return RedirectToAction("AddClerk");
-                }
+                    throw new KeyNotFoundException("Clerk not found.");
+
+                if (string.IsNullOrWhiteSpace(Name))
+                    throw new ArgumentException("Name cannot be empty.");
+
+                if (!string.IsNullOrWhiteSpace(Email) && !new EmailAddressAttribute().IsValid(Email))
+                    throw new ArgumentException("Invalid email format.");
 
                 clerk.Name = Name;
                 clerk.Email = Email;
@@ -322,13 +391,26 @@ namespace UniversityCorrespondencePortal.Controllers
                 db.SaveChanges();
                 TempData["Message"] = "Clerk updated successfully.";
             }
+            catch (ArgumentException argEx)
+            {
+                TempData["Error"] = "Validation error: " + argEx.Message;
+            }
+            catch (KeyNotFoundException notFoundEx)
+            {
+                TempData["Error"] = notFoundEx.Message;
+            }
+            catch (DbUpdateException dbEx)
+            {
+                TempData["Error"] = "Database update failed. Please try again. Details: " + dbEx.InnerException?.Message ?? dbEx.Message;
+            }
             catch (Exception ex)
             {
-                TempData["Error"] = "Update failed: " + ex.Message;
+                TempData["Error"] = "Unexpected error while updating clerk: " + ex.Message;
             }
 
             return RedirectToAction("AddClerk");
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -418,30 +500,68 @@ namespace UniversityCorrespondencePortal.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult AddDepartmentModal(string DepartmentID, string DepartmentName, string DepartmentCode)
         {
-            if (string.IsNullOrWhiteSpace(DepartmentID) || string.IsNullOrWhiteSpace(DepartmentName))
+            try
             {
-                TempData["Error"] = "Department ID and Name are required.";
-                return RedirectToAction("AddDepartment");
-            }
+                // 1️⃣ Required fields check
+                if (string.IsNullOrWhiteSpace(DepartmentID) || string.IsNullOrWhiteSpace(DepartmentName))
+                    throw new ArgumentException("Department ID and Name are required.");
 
-            if (db.Departments.Any(d => d.DepartmentID == DepartmentID))
-            {
-                TempData["Error"] = "Department ID already exists.";
-                return RedirectToAction("AddDepartment");
-            }
+                // 2️⃣ Format validation for DepartmentID (letters + numbers only)
+                if (!System.Text.RegularExpressions.Regex.IsMatch(DepartmentID, @"^[A-Za-z0-9]+$"))
+                    throw new ArgumentException("Department ID can only contain letters and numbers.");
 
-            db.Departments.Add(new Department
-            {
-                DepartmentID = DepartmentID,
-                DepartmentName = DepartmentName,
-                DepartmentCode = DepartmentCode
-            });
-           
+                // 3️⃣ Format validation for DepartmentName (letters + spaces only)
+                if (!System.Text.RegularExpressions.Regex.IsMatch(DepartmentName, @"^[A-Za-z\s]+$"))
+                    throw new ArgumentException("Department name can only contain letters and spaces.");
+
+                // 4️⃣ Format validation for DepartmentCode (uppercase letters only)
+                if (!string.IsNullOrWhiteSpace(DepartmentCode) &&
+                    !System.Text.RegularExpressions.Regex.IsMatch(DepartmentCode, @"^[A-Z]{2,10}$"))
+                    throw new ArgumentException("Department code must be 2–10 uppercase letters.");
+
+                // 5️⃣ Uniqueness checks
+                if (db.Departments.Any(d => d.DepartmentID == DepartmentID))
+                    throw new InvalidOperationException("Department ID already exists.");
+
+                if (db.Departments.Any(d => d.DepartmentName.ToLower() == DepartmentName.ToLower()))
+                    throw new InvalidOperationException("Department name already exists.");
+
+                // 6️⃣ Add to database
+                db.Departments.Add(new Department
+                {
+                    DepartmentID = DepartmentID,
+                    DepartmentName = DepartmentName,
+                    DepartmentCode = DepartmentCode,
+                    IsActive = true
+                });
+
                 db.SaveChanges();
-            
-            TempData["Message"] = "Department added successfully.";
+
+                TempData["Message"] = "Department added successfully.";
+            }
+            catch (ArgumentException ex) // Validation-related
+            {
+                TempData["Error"] = ex.Message;
+            }
+            catch (InvalidOperationException ex) // Business rule violation
+            {
+                TempData["Error"] = ex.Message;
+            }
+            catch (System.Data.Entity.Infrastructure.DbUpdateException dbEx) // DB constraint issues
+            {
+                // Likely a unique index violation
+                TempData["Error"] = "Database error: possible duplicate or constraint violation.";
+                // Optional: log dbEx.InnerException for debugging
+            }
+            catch (Exception ex) // Unexpected errors
+            {
+                TempData["Error"] = "An unexpected error occurred: " + ex.Message;
+                // Optional: log the full exception
+            }
+
             return RedirectToAction("AddDepartment");
         }
 
@@ -450,51 +570,149 @@ namespace UniversityCorrespondencePortal.Controllers
         {
             try
             {
+                var tempStaff = new Staff
+                {
+                    StaffID = StaffID,
+                    Name = Name?.Trim(),
+                    Email = Email?.Trim(),
+                    Phone = Phone?.Trim(),
+                    Designation = Designation?.Trim()
+                };
+
+                var validationResults = new List<ValidationResult>();
+
+                // ✅ Validate only Name, Email, and Phone
+                var propsToValidate = new[] { "Name", "Email", "Phone" };
+                foreach (var prop in propsToValidate)
+                {
+                    var context = new ValidationContext(tempStaff) { MemberName = prop };
+                    Validator.TryValidateProperty(
+                        tempStaff.GetType().GetProperty(prop)?.GetValue(tempStaff),
+                        context,
+                        validationResults
+                    );
+                }
+
+                if (validationResults.Any())
+                {
+                    throw new ValidationException(string.Join(" ", validationResults.Select(vr => vr.ErrorMessage)));
+                }
+
                 var staff = db.Staffs.FirstOrDefault(s => s.StaffID == StaffID);
                 if (staff == null)
-                    return HttpNotFound();
+                    throw new KeyNotFoundException("Staff record not found.");
 
-                staff.Name = Name;
-                staff.Email = Email;
-                staff.Phone = Phone;
-                staff.Designation = Designation;
+                bool duplicateExists = db.Staffs.Any(s =>
+                    s.StaffID != StaffID &&
+                    (s.Email == tempStaff.Email || s.Phone == tempStaff.Phone));
+
+                if (duplicateExists)
+                    throw new InvalidOperationException("Another staff member already has the same email or phone number.");
+
+                staff.Name = tempStaff.Name;
+                staff.Email = tempStaff.Email;
+                staff.Phone = tempStaff.Phone;
+                staff.Designation = tempStaff.Designation;
 
                 db.SaveChanges();
                 TempData["Message"] = "Staff updated successfully.";
             }
+            catch (ValidationException vex)
+            {
+                TempData["Error"] = vex.Message;
+            }
+            catch (KeyNotFoundException knfEx)
+            {
+                TempData["Error"] = knfEx.Message;
+            }
+            catch (InvalidOperationException ioex)
+            {
+                TempData["Error"] = ioex.Message;
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                TempData["Error"] = "The record was modified by another user. Please reload and try again.";
+            }
+            catch (DbUpdateException dbEx)
+            {
+                TempData["Error"] = "Database error: " + (dbEx.InnerException?.Message ?? dbEx.Message);
+            }
             catch (Exception ex)
             {
-                TempData["Error"] = "Update failed: " + ex.Message;
+                TempData["Error"] = "An unexpected error occurred while updating the staff record.";
+                System.Diagnostics.Debug.WriteLine(ex);
             }
 
             return RedirectToAction("AddStaff");
         }
 
+
+
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult UpdateDepartment(string DepartmentID, string DepartmentName, string DepartmentCode)
         {
             try
             {
+                // 1️⃣ Validate required fields
+                if (string.IsNullOrWhiteSpace(DepartmentID))
+                    throw new ArgumentException("Department ID is required.");
+
+                if (string.IsNullOrWhiteSpace(DepartmentName))
+                    throw new ArgumentException("Department name is required.");
+
+                // 2️⃣ Format validation for DepartmentName (letters + spaces only)
+                if (!System.Text.RegularExpressions.Regex.IsMatch(DepartmentName, @"^[A-Za-z\s]+$"))
+                    throw new ArgumentException("Department name can only contain letters and spaces.");
+
+                // 3️⃣ Format validation for DepartmentCode (uppercase letters only, optional field)
+                if (!string.IsNullOrWhiteSpace(DepartmentCode) &&
+                    !System.Text.RegularExpressions.Regex.IsMatch(DepartmentCode, @"^[A-Z]{2,10}$"))
+                    throw new ArgumentException("Department code must be 2–10 uppercase letters.");
+
+                // 4️⃣ Check if department exists
                 var department = db.Departments.FirstOrDefault(d => d.DepartmentID == DepartmentID);
                 if (department == null)
-                {
-                    TempData["Error"] = "Department not found.";
-                    return RedirectToAction("AddDepartment");
-                }
+                    throw new KeyNotFoundException("Department not found.");
 
+                // 5️⃣ Check for duplicate DepartmentName (case-insensitive, excluding current record)
+                bool nameExists = db.Departments.Any(d => d.DepartmentName.ToLower() == DepartmentName.ToLower()
+                                                       && d.DepartmentID != DepartmentID);
+                if (nameExists)
+                    throw new InvalidOperationException("Another department with the same name already exists.");
+
+                // 6️⃣ Update department
                 department.DepartmentName = DepartmentName;
                 department.DepartmentCode = DepartmentCode;
                 db.SaveChanges();
 
                 TempData["Message"] = "Department updated successfully.";
             }
-            catch (Exception ex)
+            catch (ArgumentException ex) // Input validation errors
             {
-                TempData["Error"] = "Update failed: " + ex.Message;
+                TempData["Error"] = ex.Message;
+            }
+            catch (InvalidOperationException ex) // Duplicate name or business rule errors
+            {
+                TempData["Error"] = ex.Message;
+            }
+            catch (KeyNotFoundException ex) // Record not found
+            {
+                TempData["Error"] = ex.Message;
+            }
+            catch (System.Data.Entity.Infrastructure.DbUpdateException dbEx) // DB constraint violations
+            {
+                TempData["Error"] = "Database update failed. Possible duplicate or constraint violation.";
+                // Optionally log dbEx.InnerException for details
+            }
+            catch (Exception ex) // Unexpected errors
+            {
+                TempData["Error"] = "An unexpected error occurred: " + ex.Message;
             }
 
             return RedirectToAction("AddDepartment");
         }
+
 
         public class DepartmentStatusToggleModel
         {

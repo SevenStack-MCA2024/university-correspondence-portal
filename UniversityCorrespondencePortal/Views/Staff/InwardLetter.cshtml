@@ -8,7 +8,44 @@
 <div class="container mt-4">
     <h2>📬 Inward Letters Assigned to You</h2>
 
-    <table class="table table-bordered table-striped">
+    <!-- 🔍 Search & Filter Section -->
+    <div class="row mb-3">
+        <div class="col-md-2">
+            <input type="text" id="searchBox" class="form-control" placeholder="Search...">
+        </div>
+        <div class="col-md-2">
+            <input type="date" id="fromDate" class="form-control">
+        </div>
+        <div class="col-md-2">
+            <input type="date" id="toDate" class="form-control">
+        </div>
+        <div class="col-md-2">
+            <select id="senderDeptFilter" class="form-control">
+                <option value="">All Departments</option>
+                @foreach (var dept in Model.Select(m => m.SenderDepartment).Distinct().Where(d => !string.IsNullOrEmpty(d)))
+                {
+                    <option value="@dept">@dept</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select id="senderNameFilter" class="form-control">
+                <option value="">All Senders</option>
+                @foreach (var sender in Model.Select(m => m.SenderName).Distinct().Where(s => !string.IsNullOrEmpty(s)))
+                {
+                    <option value="@sender">@sender</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-1">
+            <button id="applyFilter" class="btn btn-primary btn-block">Apply</button>
+        </div>
+        <div class="col-md-1">
+            <button id="clearFilter" class="btn btn-secondary btn-block">Clear</button>
+        </div>
+    </div>
+
+    <table class="table table-bordered table-striped" id="lettersTable">
         <thead>
             <tr>
                 <th>Inward Number</th>
@@ -55,7 +92,7 @@
     </table>
 </div>
 
-<!-- Modal to show full letter details -->
+<!-- Modal -->
 <div class="modal fade" id="letterModal" tabindex="-1" aria-labelledby="letterModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -88,11 +125,11 @@
 @section Scripts {
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            const buttons = document.querySelectorAll(".view-letter-btn");
-            buttons.forEach(button => {
+
+            // 📝 View Modal Population
+            document.querySelectorAll(".view-letter-btn").forEach(button => {
                 button.addEventListener("click", function () {
                     const letter = JSON.parse(this.getAttribute("data-letter"));
-
                     document.getElementById("modalInwardNumber").innerText = letter.InwardNumber || "-";
                     document.getElementById("modalOutwardNumber").innerText = letter.OutwardNumber || "-";
                     document.getElementById("modalDateReceived").innerText = letter.DateReceived
@@ -111,6 +148,53 @@
                     document.getElementById("modalReceiverDept").innerText = letter.ReceiverDepartment || "-";
                 });
             });
+
+            // 🔍 Search & Filter Logic
+            function filterTable() {
+                const searchValue = document.getElementById("searchBox").value.toLowerCase();
+                const fromDate = document.getElementById("fromDate").value;
+                const toDate = document.getElementById("toDate").value;
+                const senderDept = document.getElementById("senderDeptFilter").value.toLowerCase();
+                const senderName = document.getElementById("senderNameFilter").value.toLowerCase();
+
+                document.querySelectorAll("#lettersTable tbody tr").forEach(row => {
+                    const cells = row.getElementsByTagName("td");
+                    const date = cells[1].innerText;
+                    const dept = cells[3].innerText.toLowerCase();
+                    const name = cells[4].innerText.toLowerCase();
+                    const rowText = row.innerText.toLowerCase();
+
+                    let visible = true;
+
+                    // Search filter
+                    if (searchValue && !rowText.includes(searchValue)) {
+                        visible = false;
+                    }
+
+                    // Date range filter
+                    if (fromDate && date < fromDate) visible = false;
+                    if (toDate && date > toDate) visible = false;
+
+                    // Dropdown filters
+                    if (senderDept && dept !== senderDept) visible = false;
+                    if (senderName && name !== senderName) visible = false;
+
+                    row.style.display = visible ? "" : "none";
+                });
+            }
+
+            document.getElementById("applyFilter").addEventListener("click", filterTable);
+
+            document.getElementById("clearFilter").addEventListener("click", function () {
+                document.getElementById("searchBox").value = "";
+                document.getElementById("fromDate").value = "";
+                document.getElementById("toDate").value = "";
+                document.getElementById("senderDeptFilter").value = "";
+                document.getElementById("senderNameFilter").value = "";
+                filterTable();
+            });
+
+            document.getElementById("searchBox").addEventListener("keyup", filterTable);
         });
     </script>
 }

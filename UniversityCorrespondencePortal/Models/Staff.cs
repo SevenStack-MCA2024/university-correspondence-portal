@@ -8,43 +8,43 @@ namespace UniversityCorrespondencePortal.Models
     {
         public Staff()
         {
-            IsActive = true; // 👈 default value
+            IsActive = true; // Default to active
+            MustResetPassword = false;
         }
 
         [Key]
         public int StaffID { get; set; }
 
         [Required(ErrorMessage = "Name is required")]
-        [MaxLength(100)]
+        [MaxLength(100, ErrorMessage = "Name cannot exceed 100 characters")]
+        [RegularExpression(@"^[A-Za-z\s]+$", ErrorMessage = "Name can only contain letters and spaces")]
         public string Name { get; set; }
 
         [Required(ErrorMessage = "Designation is required")]
-        [MaxLength(50)]
+        [MaxLength(50, ErrorMessage = "Designation cannot exceed 50 characters")]
         public string Designation { get; set; }
 
         [Required(ErrorMessage = "Email is required")]
-        [MaxLength(100)]
+        [MaxLength(100, ErrorMessage = "Email cannot exceed 100 characters")]
         [EmailAddress(ErrorMessage = "Invalid email format")]
-        public string Email { get; set; } // ✅ Make unique via Fluent API
+        public string Email { get; set; } // Unique via Fluent API
 
-        [Required(ErrorMessage = "Password is required")]
         [MaxLength(200)]
         public string PasswordHash { get; set; }
 
-        [Required(ErrorMessage = "Phone is required")]
-        [MaxLength(15)]
+        [Required(ErrorMessage = "Phone number is required")]
+        [MaxLength(10, ErrorMessage = "Phone cannot exceed 10 digits")]
         [Phone(ErrorMessage = "Invalid phone number")]
-        [RegularExpression(@"^\d{10,15}$", ErrorMessage = "Phone must be 10 to 15 digits")]
-        public string Phone { get; set; } // ✅ Make unique via Fluent API
+        [RegularExpression(@"^\d{10}$", ErrorMessage = "Phone must be 10 digits")]
+        public string Phone { get; set; } // Unique via Fluent API
 
         public bool IsActive { get; set; }
+
         public bool MustResetPassword { get; set; }
 
-
-        // Navigation
+        // Navigation properties
         public virtual ICollection<StaffDepartment> StaffDepartments { get; set; }
         public virtual ICollection<LetterStaff> LetterStaffs { get; set; }
         public virtual ICollection<OutwardLetterStaff> OutwardLetterStaffs { get; set; }
-
     }
 }

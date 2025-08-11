@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace UniversityCorrespondencePortal.Models
 {
@@ -10,48 +9,59 @@ namespace UniversityCorrespondencePortal.Models
         [Key]
         public int LetterID { get; set; }
 
-        [Required]
-        [MaxLength(50)]
+        [Required(ErrorMessage = "Inward Number is required")]
+        [StringLength(50, MinimumLength = 3, ErrorMessage = "Inward Number must be between 3 and 50 characters")]
+        [RegularExpression(@"^[A-Za-z0-9\-\/]+$", ErrorMessage = "Inward Number can only contain letters, numbers, hyphens, and slashes")]
         public string InwardNumber { get; set; }
 
-        [MaxLength(50)]
+        [StringLength(50, ErrorMessage = "Outward Number cannot exceed 50 characters")]
+        [RegularExpression(@"^[A-Za-z0-9\-\/]*$", ErrorMessage = "Outward Number can only contain letters, numbers, hyphens, and slashes")]
         public string OutwardNumber { get; set; }
 
         [DataType(DataType.Date)]
+        [CustomValidation(typeof(InwardLetter), nameof(ValidateNotFutureDate))]
         public DateTime? DateReceived { get; set; }
 
         [DataType(DataType.Time)]
         public TimeSpan? TimeReceived { get; set; }
 
-        [MaxLength(50)]
+        [Required(ErrorMessage = "Delivery Mode is required")]
+        [StringLength(50, ErrorMessage = "Delivery Mode cannot exceed 50 characters")]
         public string DeliveryMode { get; set; }
 
-        [MaxLength(100)]
+        [StringLength(100, ErrorMessage = "Sender Department cannot exceed 100 characters")]
         public string SenderDepartment { get; set; }
 
-        [MaxLength(100)]
+        [Required(ErrorMessage = "Sender Name is required")]
+        [StringLength(100, ErrorMessage = "Sender Name cannot exceed 100 characters")]
         public string SenderName { get; set; }
 
-        [MaxLength(100)]
+        [StringLength(100, ErrorMessage = "Reference ID cannot exceed 100 characters")]
         public string ReferenceID { get; set; }
 
-        [MaxLength(255)]
+        [Required(ErrorMessage = "Subject is required")]
+        [StringLength(255, ErrorMessage = "Subject cannot exceed 255 characters")]
         public string Subject { get; set; }
 
-        [MaxLength(255)]
+        [StringLength(255, ErrorMessage = "Remarks cannot exceed 255 characters")]
         public string Remarks { get; set; }
 
-        [MaxLength(20)]
+        [StringLength(20, ErrorMessage = "Priority cannot exceed 20 characters")]
         public string Priority { get; set; }
 
-        [MaxLength(100)]
+        [StringLength(100, ErrorMessage = "Receiver Department cannot exceed 100 characters")]
         public string ReceiverDepartment { get; set; }
 
-        // Remove StaffID
-        // public int? StaffID { get; set; }
-        // public virtual Staff Staff { get; set; }
-
-        // Many-to-many navigation
         public virtual ICollection<LetterStaff> LetterStaffs { get; set; }
+
+        // Custom validation method to ensure date is not in the future
+        public static ValidationResult ValidateNotFutureDate(DateTime? date, ValidationContext context)
+        {
+            if (date.HasValue && date.Value.Date > DateTime.Today)
+            {
+                return new ValidationResult("Date received cannot be in the future.");
+            }
+            return ValidationResult.Success;
+        }
     }
 }

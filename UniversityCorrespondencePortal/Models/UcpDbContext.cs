@@ -1,4 +1,5 @@
-﻿using System.Data.Entity;
+﻿using System.Data;
+using System.Data.Entity;
 
 namespace UniversityCorrespondencePortal.Models
 {
@@ -52,12 +53,16 @@ namespace UniversityCorrespondencePortal.Models
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<Staff>()
-    .HasIndex(s => s.Email)
-    .IsUnique();
+        .HasIndex(s => s.Email)
+        .IsUnique()
+        .HasName("IX_Staff_Email");
 
             modelBuilder.Entity<Staff>()
                 .HasIndex(s => s.Phone)
-                .IsUnique();
+                .IsUnique()
+                .HasName("IX_Staff_Phone");
+            base.OnModelCreating(modelBuilder);
+
 
 
 
@@ -76,6 +81,16 @@ namespace UniversityCorrespondencePortal.Models
                 .HasForeignKey(ols => ols.StaffID)
                 .WillCascadeOnDelete(false);
 
+            
+            // Unique constraint on DepartmentID
+    modelBuilder.Entity<Department>()
+        .HasIndex(d => d.DepartmentID)
+        .IsUnique();
+
+            // Unique constraint on DepartmentName
+            modelBuilder.Entity<Department>()
+                .HasIndex(d => d.DepartmentName)
+                .IsUnique();
         }
     }
 }

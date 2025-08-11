@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
@@ -16,60 +17,68 @@ namespace UniversityCorrespondencePortal.Controllers
         // GET: Staff/Login1
         public ActionResult Login(string email, string password)
         {
-            email = email?.Trim();
-            password = password?.Trim();
-
-            if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+            try
             {
-                ViewBag.Error = "Please enter both email and password.";
+                email = email?.Trim();
+                password = password?.Trim();
+
+                if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+                {
+                    ViewBag.Error = "Please enter both your email and password to continue.";
+                    return View();
+                }
+
+                var staffData = db.Database.SqlQuery<StaffViewModel>(
+                    @"SELECT TOP 1 
+                StaffID, 
+                Name, 
+                Email, 
+                Phone, 
+                Designation, 
+                IsActive, 
+                MustResetPassword
+              FROM Staffs 
+              WHERE Email = @p0 AND IsActive = 1", email).FirstOrDefault();
+
+                if (staffData != null)
+                {
+                    var fullStaff = db.Staffs.FirstOrDefault(s => s.StaffID == staffData.StaffID);
+
+                    if (fullStaff != null && PasswordHelper.VerifyPassword(password, fullStaff.PasswordHash))
+                    {
+                        Session["StaffID"] = staffData.StaffID;
+                        Session["StaffName"] = staffData.Name;
+                        Session["StaffEmail"] = staffData.Email;
+
+                        if (staffData.MustResetPassword)
+                        {
+                            TempData["Info"] = "Your account requires a password reset before logging in.";
+                            return RedirectToAction("ResetPassword", "Staff");
+                        }
+
+                        return RedirectToAction("InwardLetter", "Staff");
+                    }
+                }
+
+                ViewBag.Error = "Incorrect email or password. Please try again.";
                 return View();
             }
-
-            // Map SQL result directly into StaffViewModel
-            var staffData = db.Database.SqlQuery<StaffViewModel>(
-                @"SELECT TOP 1 
-              StaffID, 
-              Name, 
-              Email, 
-              Phone, 
-              Designation, 
-              IsActive, 
-              MustResetPassword
-          FROM Staffs 
-          WHERE Email = @p0 AND IsActive = 1", email).FirstOrDefault();
-
-            if (staffData != null)
+            catch (Exception)
             {
-                // You now need to fetch the full Staff record to verify the hashed password
-                var fullStaff = db.Staffs.FirstOrDefault(s => s.StaffID == staffData.StaffID);
-
-                if (fullStaff != null && PasswordHelper.VerifyPassword(password, fullStaff.PasswordHash))
-                {
-                    Session["StaffID"] = staffData.StaffID;
-                    Session["StaffName"] = staffData.Name;
-                    Session["StaffEmail"] = staffData.Email;
-
-                    if (staffData.MustResetPassword)
-                    {
-                        return RedirectToAction("ResetPassword", "Staff");
-                    }
-
-                    return RedirectToAction("InwardLetter", "Staff");
-                }
+                // You can log `ex` for debugging, but don't show details to the user
+                ViewBag.Error = "Something went wrong while logging you in. Please try again in a few minutes.";
+                return View();
             }
-
-            ViewBag.Error = "Invalid email, password, or your account is inactive.";
-            return View();
         }
 
-        // OTP storage (static for simplicity)
+
         private static Dictionary<string, string> otpStore = new Dictionary<string, string>();
 
         [HttpPost]
         public JsonResult SendOtp(string email)
         {
-            var staff = db.Staffs.FirstOrDefault(s => s.Email == email && s.IsActive);
-            if (staff == null)
+            var clerk = db.Staffs.FirstOrDefault(c => c.Email == email && c.IsActive);
+            if (clerk == null)
             {
                 return Json(new { success = false, message = "Email not found or account inactive." });
             }
@@ -96,22 +105,18 @@ namespace UniversityCorrespondencePortal.Controllers
         [HttpPost]
         public JsonResult UpdatePassword(string email, string password)
         {
-            var clerk = db.Clerks.FirstOrDefault(c => c.Email == email && c.IsActive);
+            var clerk = db.Staffs.FirstOrDefault(c => c.Email == email && c.IsActive);
             if (clerk == null)
             {
                 return Json(new { success = false, message = "User not found." });
             }
 
-            clerk.PasswordHash = password; // Store plain text password
+            clerk.PasswordHash = PasswordHelper.HashPassword(password); // Save plain text
             db.SaveChanges();
 
             otpStore.Remove(email);
             return Json(new { success = true });
         }
-        
-
-
-
 
 
 

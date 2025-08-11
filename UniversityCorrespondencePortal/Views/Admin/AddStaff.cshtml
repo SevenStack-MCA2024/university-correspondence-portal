@@ -164,10 +164,32 @@
 
                     <div class="col-md-6">
                         <label class="form-label">Name</label>
-                        <input type="text" name="Name" class="form-control" required minlength="3"
-                               oninvalid="this.setCustomValidity('Please enter at least 3 characters for Name')"
+                        <input type="text" name="Name" class="form-control"
+                               required minlength="1" maxlength="100"
+                               pattern="^[A-Za-z\s]+$"
+                               oninvalid="this.setCustomValidity(
+               this.validity.valueMissing ? 'Name is required' :
+               this.validity.tooLong ? 'Name cannot exceed 100 characters' :
+               this.validity.patternMismatch ? 'Name can only contain letters and spaces' :
+               ''
+           )"
                                oninput="this.setCustomValidity('')" />
                     </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Designation</label>
+                        <input type="text" name="Designation" class="form-control"
+                               required minlength="1" maxlength="50"
+                               pattern="^[A-Za-z\s]+$"
+                               oninvalid="this.setCustomValidity(
+               this.validity.valueMissing ? 'Designation is required' :
+               this.validity.tooLong ? 'Designation cannot exceed 50 characters' :
+               this.validity.patternMismatch ? 'Designation can only contain letters and spaces' :
+               ''
+           )"
+                               oninput="this.setCustomValidity('')" />
+                    </div>
+
 
                     <div class="col-md-6">
                         <label class="form-label">Email</label>
@@ -185,12 +207,7 @@
                                oninput="this.setCustomValidity('')" />
                     </div>
 
-                    <div class="col-md-6">
-                        <label class="form-label">Designation</label>
-                        <input type="text" name="Designation" class="form-control" required minlength="2"
-                               oninvalid="this.setCustomValidity('Please enter a valid designation')"
-                               oninput="this.setCustomValidity('')" />
-                    </div>
+                    
 
                     <div class="col-md-6">
                         <label class="form-label">Department</label>

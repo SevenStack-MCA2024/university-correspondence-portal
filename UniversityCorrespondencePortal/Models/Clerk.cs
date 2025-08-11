@@ -1,46 +1,46 @@
-﻿    using System.ComponentModel.DataAnnotations;
-    using System.ComponentModel.DataAnnotations.Schema;
-    using static System.Web.Razor.Parser.SyntaxConstants;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using static System.Web.Razor.Parser.SyntaxConstants;
 
-    namespace UniversityCorrespondencePortal.Models
+namespace UniversityCorrespondencePortal.Models
+{
+    public class Clerk
+
+
     {
-        public class Clerk
-
-
+        public Clerk()
         {
-            public Clerk()
-            {
-                IsActive = true; // 👈 default value
-            }
+            IsActive = true; // 👈 default value
+        }
 
 
-            [Key]
-            [MaxLength(10)]
-            public string ClerkID { get; set; }
+        [Key]
+        [MaxLength(10)]
+        public string ClerkID { get; set; }
 
-        
-            [MaxLength(100)]
-            public string Name { get; set; }
 
-            [MaxLength(100)]
-            [EmailAddress]
-            public string Email { get; set; }
-        
-            [MaxLength(200)]
-            public string PasswordHash { get; set; }
+        [MaxLength(100)]
+        public string Name { get; set; }
 
-            [MaxLength(15)]
-            public string Phone { get; set; }
+        [MaxLength(100)]
+        [EmailAddress]
+        public string Email { get; set; }
 
-            public bool IsActive { get; set; }
+        [MaxLength(200)]
+        public string PasswordHash { get; set; }
+
+        [MaxLength(15)]
+        public string Phone { get; set; }
+
+        public bool IsActive { get; set; }
 
         public bool MustResetPassword { get; set; } = true;
 
         [Required]
-            [MaxLength(10)]
-            public string DepartmentID { get; set; }
+        [MaxLength(10)]
+        public string DepartmentID { get; set; }
 
-            [ForeignKey("DepartmentID")]
-            public virtual Department Department { get; set; }
-        }
+        [ForeignKey("DepartmentID")]
+        public virtual Department Department { get; set; }
     }
+}
