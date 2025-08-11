@@ -95,6 +95,7 @@
                         l.SenderDepartment,
                         l.SenderName,
                         l.ReferenceID,
+                        l.DeliveryMode,
                         l.Subject,
                         l.Remarks,
                         l.Priority,
@@ -166,10 +167,13 @@
                         <input type="text" name="ReferenceID" class="form-control" />
                     </div>
                     <div class="col-md-6">
-                        <label>Delivery Mode</label>
-                        <input type="text" name="DeliveryMode" id="DeliveryModeAdd" class="form-control"
-                               required pattern="^[A-Za-z\s]+$"
-                               title="Delivery mode should contain only letters and spaces" />
+                        <label for="DeliveryModeAdd">Delivery Mode</label>
+                        <select name="DeliveryMode" id="DeliveryModeAdd" class="form-control" required>
+                            <option value="">-- Select Delivery Mode --</option>
+                            <option value="POST">POST</option>
+                            <option value="By Hand">By Hand</option>
+                            <option value="Other">Other</option>
+                        </select>
                     </div>
                     <div class="col-md-6">
                         <label>Subject</label>
@@ -193,7 +197,7 @@
                         <input type="hidden" name="ReceiverDepartment" value="@ViewBag.ReceiverDepartment" />
                     </div>
                     <div class="col-md-12">
-                        <label>Select Staff</label>
+                        <label>Assign Staff</label>
                         <select name="SelectedStaffIDs" class="form-control select2" multiple>
                             @foreach (var s in allStaff)
                             {
@@ -248,7 +252,7 @@
                     <dd class="col-sm-8" id="viewPriority"></dd>
                     <dt class="col-sm-4">Receiver Department</dt>
                     <dd class="col-sm-8" id="viewReceiverDept"></dd>
-                    <dt class="col-sm-4">Staff</dt>
+                    <dt class="col-sm-4">Assign Staff</dt>
                     <dd class="col-sm-8" id="viewStaff"></dd>
                 </dl>
             </div>
@@ -328,11 +332,11 @@
                         <input type="text" class="form-control" id="editPriority" disabled />
                     </div>
                     <div class="col-md-6">
-                        <label>Receiver Department</label>
+                        <label>Assign Department</label>
                         <input type="text" class="form-control" id="editReceiverDept" disabled />
                     </div>
                     <div class="col-md-12">
-                        <label>Select Staff</label>
+                        <label>Assign Staff</label>
                         <select class="form-control select2" id="editStaffSelect" name="SelectedStaffIDs" multiple>
                             @foreach (var s in allStaff)
                             {
@@ -453,7 +457,7 @@
             $('#viewSenderDept').text(letter.SenderDepartment || '');
             $('#viewSenderName').text(letter.SenderName || '');
             $('#viewReferenceID').text(letter.ReferenceID || '');
-            $('#DeliveryMode').text(letter.ReferenceID || '');
+            $('#DeliveryMode').text(letter.DeliveryMode || '');
             $('#viewSubject').text(letter.Subject || '');
             $('#viewRemarks').text(letter.Remarks || '');
             $('#viewPriority').text(letter.Priority || '');
