@@ -151,7 +151,10 @@
 
                     <div class="col-md-6">
                         <label class="form-label">Delivery Mode</label>
-                        <input type="text" name="DeliveryMode" class="form-control" required />
+                        <input type="text" name="DeliveryMode" class="form-control"
+                               required
+                               pattern="^[A-Za-z\s]+$"
+                               title="Only letters and spaces are allowed" />
                     </div>
 
                     <div class="col-md-6">
@@ -206,7 +209,10 @@
 
                     <div class="col-md-6">
                         <label class="form-label">Receiver Name</label>
-                        <input type="text" name="ReceiverName" class="form-control" />
+                        <input type="text" name="ReceiverName" class="form-control"
+                               required
+                               pattern="^[A-Za-z\s]+$"
+                               title="Only letters and spaces are allowed" />
                     </div>
 
                     <input type="hidden" name="DepartmentID" value="@Session["DepartmentID"]" />
@@ -274,7 +280,7 @@
 
                     <div class="col-md-6">
                         <label class="form-label">Sender Name</label>
-                        <select name="AssignedStaffID" id="editSenderName" class="form-select">
+                        <select name="AssignedStaffID" id="editSenderName" class="form-select" disabled>
                             @foreach (var staff in ViewBag.StaffList)
                             {
                                 <option value="@staff.StaffID">@staff.Name</option>
@@ -294,9 +300,14 @@
                         <input type="text" name="ReceiverDepartmentOther" id="editReceiverDeptOther" class="form-control mt-2 d-none" placeholder="Enter external department" />
                     </div>
 
+                   
+
                     <div class="col-md-6">
                         <label class="form-label">Receiver Name</label>
-                        <input type="text" name="ReceiverName" id="editReceiverName" class="form-control" />
+                        <input type="text" name="ReceiverName" id="editReceiverName"  class="form-control"
+                               required
+                               pattern="^[A-Za-z\s]+$"
+                               title="Only letters and spaces are allowed" />
                     </div>
 
                     <div class="col-md-6">

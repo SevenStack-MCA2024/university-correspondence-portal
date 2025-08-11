@@ -135,9 +135,9 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Helpers\PasswordHelper.cs" />
-    <Compile Include="Migrations\202508090327151_createschema.cs" />
-    <Compile Include="Migrations\202508090327151_createschema.Designer.cs">
-      <DependentUpon>202508090327151_createschema.cs</DependentUpon>
+    <Compile Include="Migrations\202508101315092_createschema.cs" />
+    <Compile Include="Migrations\202508101315092_createschema.Designer.cs">
+      <DependentUpon>202508101315092_createschema.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Admin.cs" />
@@ -276,8 +276,8 @@
     <Folder Include="Views\OutwardLetter\" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202508090327151_createschema.resx">
-      <DependentUpon>202508090327151_createschema.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202508101315092_createschema.resx">
+      <DependentUpon>202508101315092_createschema.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

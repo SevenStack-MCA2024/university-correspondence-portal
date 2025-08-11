@@ -75,17 +75,51 @@
                         {
                             if (staff.StaffID == editId)
                             {
-                                <form method="post" action="@Url.Action("UpdateStaff", "Clerk")">
+                                <form method="post" action="@Url.Action("UpdateStaff", "Clerk")" onsubmit="return validateStaffForm(this)">
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="StaffID" value="@staff.StaffID" />
                                 <tr data-name="@staff.Name" data-email="@staff.Email" data-phone="@staff.Phone"
                                     data-department="@staff.Departments" data-designation="@staff.Designation"
                                     data-status="@(staff.IsActive ? "Active" : "Inactive")">
                                     <td>@staff.StaffID</td>
-                                    <td><input type="text" name="Name" value="@staff.Name" class="form-control form-control-sm" required /></td>
-                                    <td><input type="email" name="Email" value="@staff.Email" class="form-control form-control-sm" required /></td>
-                                    <td><input type="text" name="Phone" value="@staff.Phone" class="form-control form-control-sm" required /></td>
-                                    <td><input type="text" name="Designation" value="@staff.Designation" class="form-control form-control-sm" required /></td>
+                                    <td>
+                                        <input type="text"
+                                               name="Name"
+                                               value="@staff.Name"
+                                               class="form-control form-control-sm"
+                                               required
+                                               pattern="^[A-Za-z\s]+$"
+                                               title="Name must contain letters and spaces only" />
+                                    </td>
+                                    <td>
+                                        <input type="email"
+                                               name="Email"
+                                               value="@staff.Email"
+                                               class="form-control form-control-sm"
+                                               required
+                                               oninput="validateEmailInput(this)"
+                                               title="Enter a valid email address" />
+
+                                    </td>
+
+                                    <td>
+                                        <input type="text"
+                                               name="Phone"
+                                               value="@staff.Phone"
+                                               class="form-control form-control-sm"
+                                               required
+                                               pattern="^[6-9][0-9]{9}$"
+                                               title="Phone must be 10 digits starting with 6,7,8 or 9" />
+                                    </td>
+                                    <td>
+                                        <input type="text"
+                                               name="Designation"
+                                               value="@staff.Designation"
+                                               class="form-control form-control-sm"
+                                               required
+                                               pattern="^[A-Za-z\s]+$"
+                                               title="Designation must contain letters and spaces only" />
+                                    </td>
                                     <td>@staff.Departments</td>
                                     <td class="text-center">
                                         <span class="badge bg-@(staff.IsActive ? "success" : "danger")">@(staff.IsActive ? "Active" : "Inactive")</span>
@@ -96,6 +130,7 @@
                                     </td>
                                 </tr>
                                 </form>
+
                             }
                             else
                             {
@@ -153,14 +188,18 @@
                 <div class="modal-body row g-3">
                     <div class="col-md-6">
                         <label class="form-label">Name</label>
-                        <input type="text" name="Name" class="form-control" required />
-                        <div class="invalid-feedback">Name is required.</div>
+                        <!-- Name input -->
+                        <input type="text" name="Name" class="form-control" required pattern="^[A-Za-z\s]+$" />
+                        <div class="invalid-feedback">Name is required and should contain letters only.</div>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Email</label>
-                        <input type="email" name="Email" class="form-control" required />
-                        <div class="invalid-feedback">Please enter a valid email.</div>
+                        <input type="email" id="emailInput" name="Email" class="form-control" required />
+                        <div class="invalid-feedback">Please enter a valid lowercase email.</div>
                     </div>
+
+
+
                     <div class="col-md-6">
                         <label class="form-label">Phone</label>
                         <input type="text" name="Phone" class="form-control" required pattern="\d{10}" />
@@ -168,8 +207,8 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Designation</label>
-                        <input type="text" name="Designation" class="form-control" required />
-                        <div class="invalid-feedback">Designation is required.</div>
+                        <input type="text" name="Designation" class="form-control" required pattern="^[A-Za-z\s]+$" />
+                        <div class="invalid-feedback">Designation is required and should contain letters only.</div>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Department</label>
@@ -190,6 +229,21 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        function validateStaffForm(form) {
+            // Let browser handle pattern validation first
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return false;
+            }
+            // Additional validation can be added here if needed
+            return true;
+        }
+        const input = document.getElementById('emailInput');
+  input.addEventListener('input', () => {
+    input.value = input.value.toLowerCase();
+    const valid = /^[a-z0-9._%+-]+@@[a-z0-9.-]+\.[a-z]{2,}$/.test(input.value);
+    input.setCustomValidity(valid ? '' : 'Invalid lowercase email');
+  });
         function applyFilters() {
             const search = document.getElementById("searchInput").value.toLowerCase();
             const desig = document.getElementById("designationFilter").value.toLowerCase();
@@ -260,5 +314,14 @@
                 form.classList.add('was-validated');
             });
         });
+
+     function validateEmailInput(input) {
+    const emailRegex = new RegExp("^[a-z0-9._%+-]+@@[a-z0-9.-]+\\.[a-z]{2,}$", "i");
+    if (!emailRegex.test(input.value.trim())) {
+        input.setCustomValidity("Please enter a valid email address.");
+    } else {
+        input.setCustomValidity(""); // clear error
+    }
+}
     </script>
 }

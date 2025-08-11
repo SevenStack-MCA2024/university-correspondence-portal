@@ -8,6 +8,14 @@
     var allStaff = ViewBag.AllStaff as List<Staff>;
 }
 
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success">@TempData["Message"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
 
 <div class="container-fluid mt-3">
     <h2 class="mb-4">Inward Letter Management</h2>
@@ -124,7 +132,7 @@
 <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form method="post" action="@Url.Action("CreateInwardLetter", "Clerk")">
+            <form method="post" action="@Url.Action("CreateInwardLetter", "Clerk")" id="addForm">
 
                 @Html.AntiForgeryToken()
                 <div class="modal-header bg-success text-white">
@@ -149,11 +157,19 @@
                     </div>
                     <div class="col-md-6">
                         <label>Sender Name</label>
-                        <input type="text" name="SenderName" class="form-control" />
+                        <input type="text" name="SenderName" id="SenderNameAdd" class="form-control"
+                               required pattern="^[A-Za-z\s]+$"
+                               title="Sender name should contain only letters and spaces" />
                     </div>
                     <div class="col-md-6">
                         <label>Reference Letter ID</label>
                         <input type="text" name="ReferenceID" class="form-control" />
+                    </div>
+                    <div class="col-md-6">
+                        <label>Delivery Mode</label>
+                        <input type="text" name="DeliveryMode" id="DeliveryModeAdd" class="form-control"
+                               required pattern="^[A-Za-z\s]+$"
+                               title="Delivery mode should contain only letters and spaces" />
                     </div>
                     <div class="col-md-6">
                         <label>Subject</label>
@@ -197,6 +213,7 @@
 
 
 
+
 <!-- View Modal -->
 <div class="modal fade" id="viewModal" tabindex="-1" aria-labelledby="viewModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -221,6 +238,8 @@
                     <dd class="col-sm-8" id="viewSenderName"></dd>
                     <dt class="col-sm-4">Reference ID</dt>
                     <dd class="col-sm-8" id="viewReferenceID"></dd>
+                    <dt class="col-sm-4">Delivery Mode</dt>
+                    <dd class="col-sm-8" id="DeliveryMode"></dd>
                     <dt class="col-sm-4">Subject</dt>
                     <dd class="col-sm-8" id="viewSubject"></dd>
                     <dt class="col-sm-4">Remarks</dt>
@@ -284,7 +303,13 @@
 
                     <div class="col-md-6">
                         <label>Sender Name</label>
-                        <input type="text" class="form-control" name="SenderName" id="editSenderName" />
+                        <input type="text"
+                               class="form-control"
+                               name="SenderName"
+                               id="editSenderName"
+                               pattern="^[A-Za-z\s]+$"
+                               title="Sender name should only contain letters and spaces"
+                               required />
                     </div>
                     <div class="col-md-6">
                         <label>Reference ID</label>
@@ -428,6 +453,7 @@
             $('#viewSenderDept').text(letter.SenderDepartment || '');
             $('#viewSenderName').text(letter.SenderName || '');
             $('#viewReferenceID').text(letter.ReferenceID || '');
+            $('#DeliveryMode').text(letter.ReferenceID || '');
             $('#viewSubject').text(letter.Subject || '');
             $('#viewRemarks').text(letter.Remarks || '');
             $('#viewPriority').text(letter.Priority || '');
@@ -470,6 +496,22 @@
                 }
             }, 300);
         }
+
+        document.getElementById('addForm').addEventListener('submit', function (e) {
+            const senderName = document.getElementById('SenderNameAdd').value.trim();
+            const deliveryMode = document.getElementById('DeliveryModeAdd').value.trim();
+            const lettersOnly = /^[A-Za-z\s]+$/;
+
+            if (!lettersOnly.test(senderName)) {
+                alert('Sender name should contain only letters and spaces.');
+                e.preventDefault();
+                return;
+            }
+            if (!lettersOnly.test(deliveryMode)) {
+                alert('Delivery mode should contain only letters and spaces.');
+                e.preventDefault();
+                return;
+            }
+        });
     </script>
 }
-
