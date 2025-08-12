@@ -11,6 +11,8 @@
         animation: fadeInSlide 1s ease-out forwards;
         opacity: 0;
         transform: translateY(30px);
+        flex-direction: column;
+        text-align: center;
     }
 
     @@keyframes fadeInSlide {
@@ -24,8 +26,22 @@
         font-size: 2rem;
         font-weight: 700;
         color: #004080;
-        margin-bottom: 20px;
+        margin-bottom: 15px;
     }
+
+    .logo-img {
+        width: 250px; /* Increased size */
+        height: auto;
+        margin-bottom: 20px;
+        border-radius: 30%;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s ease;
+    }
+
+        .logo-img:hover {
+            transform: scale(1.05);
+        }
+
 
     .home-container p {
         font-size: 1.1rem;
@@ -39,8 +55,6 @@
 <main class="home-container">
     <div class="text-center">
         <h2>Welcome to the University Correspondence Portal</h2>
-        <p>
-            This portal streamlines communication across university departments, offering a centralized, secure, and efficient platform for handling official correspondence, circulars, and notifications. Whether you're a staff member, clerk, or administrator, the system ensures smooth operations and quick access to crucial information.
-        </p>
-    </div>
+        <img src="~/Content/logo3.png" alt="University Logo" class="logo-img" />
+        </div>
 </main>

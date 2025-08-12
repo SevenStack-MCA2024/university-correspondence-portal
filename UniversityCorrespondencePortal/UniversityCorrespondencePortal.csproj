@@ -129,15 +129,16 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\AdminController.cs" />
     <Compile Include="Controllers\ClerkController.cs" />
+    <Compile Include="Controllers\HelpController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\StaffController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Helpers\PasswordHelper.cs" />
-    <Compile Include="Migrations\202508101315092_createschema.cs" />
-    <Compile Include="Migrations\202508101315092_createschema.Designer.cs">
-      <DependentUpon>202508101315092_createschema.cs</DependentUpon>
+    <Compile Include="Migrations\202508110358244_createschema.cs" />
+    <Compile Include="Migrations\202508110358244_createschema.Designer.cs">
+      <DependentUpon>202508110358244_createschema.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Admin.cs" />
@@ -184,7 +185,8 @@
     <Content Include="Content\bootstrap.rtl.css" />
     <Content Include="Content\bootstrap.rtl.min.css" />
     <Content Include="Content\logo.jpg" />
-    <Content Include="Content\main2.jpg" />
+    <Content Include="Content\logo2.jpg" />
+    <Content Include="Content\logo3.png" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
@@ -273,11 +275,12 @@
     <Content Include="Scripts\jquery-3.7.0.min.map" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Views\Help\" />
     <Folder Include="Views\OutwardLetter\" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202508101315092_createschema.resx">
-      <DependentUpon>202508101315092_createschema.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202508110358244_createschema.resx">
+      <DependentUpon>202508110358244_createschema.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

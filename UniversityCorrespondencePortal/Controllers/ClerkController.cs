@@ -314,7 +314,7 @@ namespace UniversityCorrespondencePortal.Controllers
                 else
                 {
                     // ✳ Completely new staff → Add to Staff + StaffDepartment
-                    staff.PasswordHash = "0000";
+                    staff.PasswordHash = PasswordHelper.HashPassword("0000");
                     db.Staffs.Add(staff);
                     db.SaveChanges();
 

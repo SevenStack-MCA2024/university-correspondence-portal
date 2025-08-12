@@ -151,10 +151,12 @@
 
                     <div class="col-md-6">
                         <label class="form-label">Delivery Mode</label>
-                        <input type="text" name="DeliveryMode" class="form-control"
-                               required
-                               pattern="^[A-Za-z\s]+$"
-                               title="Only letters and spaces are allowed" />
+                        <select name="DeliveryMode" class="form-control" required>
+                            <option value="">-- Select Delivery Mode --</option>
+                            <option value="POST">POST</option>
+                            <option value="By Hand">By Hand</option>
+                            <option value="Other">Other</option>
+                        </select>
                     </div>
 
                     <div class="col-md-6">
@@ -196,7 +198,7 @@
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label">Receiver Department</label>
+                        <label class="form-label">Assign Department</label>
                         <select name="ReceiverDepartment" class="form-select" id="receiverDeptDropdown">
                             @foreach (var dept in ViewBag.DepartmentList)
                             {
@@ -208,7 +210,7 @@
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label">Receiver Name</label>
+                        <label class="form-label">Assign Name</label>
                         <input type="text" name="ReceiverName" class="form-control"
                                required
                                pattern="^[A-Za-z\s]+$"
@@ -243,8 +245,8 @@
                         <tr><th>Date</th><td id="viewDate"></td></tr>
                         <tr><th>Time</th><td id="viewTime"></td></tr>
                         <tr><th>Sender Name</th><td id="viewSender"></td></tr>
-                        <tr><th>Receiver Name</th><td id="viewReceiverName"></td></tr>
-                        <tr><th>Receiver Department</th><td id="viewReceiverDept"></td></tr>
+                        <tr><th>Assign Name</th><td id="viewReceiverName"></td></tr>
+                        <tr><th>Assign Department</th><td id="viewReceiverDept"></td></tr>
                         <tr><th>Subject</th><td id="viewSubject"></td></tr>
                         <tr><th>Reference ID</th><td id="viewReference"></td></tr>
                         <tr><th>Delivery Mode</th><td id="viewDeliveryMode"></td></tr>
@@ -289,7 +291,7 @@
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label">Receiver Department</label>
+                        <label class="form-label">Assign Department</label>
                         <select name="ReceiverDepartment" id="editReceiverDeptDropdown" class="form-select">
                             @foreach (var dept in ViewBag.DepartmentList)
                             {
@@ -303,7 +305,7 @@
                    
 
                     <div class="col-md-6">
-                        <label class="form-label">Receiver Name</label>
+                        <label class="form-label">Assign Name</label>
                         <input type="text" name="ReceiverName" id="editReceiverName"  class="form-control"
                                required
                                pattern="^[A-Za-z\s]+$"
