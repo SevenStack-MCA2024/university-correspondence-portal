@@ -1,7 +1,7 @@
 
 University Correspondence Portal
 
-Author: Rohit Mahajan
+Author: Rohit Mahajan and Vishal Sonone
 
 Project Overview
 
