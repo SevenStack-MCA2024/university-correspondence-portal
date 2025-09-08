@@ -3,12 +3,18 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
+using System.Drawing.Printing;
+using System.IO;
 using System.Linq;
 using System.Web.Mvc;
+using System.Xml.Linq;
 using UniversityCorrespondencePortal.Models;
 using UniversityCorrespondencePortal.Models.ViewModels;
 using UniversityCorrespondencePortal.Services;
 using UniversityCorrespondencePortal.ViewModels;
+
+using iTextSharp.text;
+using iTextSharp.text.pdf;
 
 namespace UniversityCorrespondencePortal.Controllers
 {
@@ -36,6 +42,7 @@ namespace UniversityCorrespondencePortal.Controllers
                 if (clerk.MustResetPassword)
                 {
                     Session["ClerkID"] = clerk.ClerkID;
+
                     return RedirectToAction("ResetPassword", "Clerk");
                 }
 
@@ -125,7 +132,7 @@ namespace UniversityCorrespondencePortal.Controllers
                 return Json(new { success = false, message = "User not found." });
             }
 
-            clerk.PasswordHash =PasswordHelper.HashPassword(password) ; // Save plain text
+            clerk.PasswordHash = PasswordHelper.HashPassword(password); // Save plain text
             db.SaveChanges();
 
             otpStore.Remove(email);
@@ -814,6 +821,198 @@ namespace UniversityCorrespondencePortal.Controllers
 
             TempData["OutwardSuccess"] = "Outward Letter updated successfully.";
             return RedirectToAction("OutwardLetter");
+        }
+
+
+
+
+//   ----------------------------------  Report Page   ------------------------------------
+
+        public ActionResult Report(string reportType = "Inward", DateTime? fromDate = null, DateTime? toDate = null)
+        {
+            if (Session["ClerkID"] == null)
+                return RedirectToAction("Login");
+
+            string deptId = Session["DepartmentID"].ToString();
+            string clerkName = Session["ClerkName"].ToString();
+
+            var model = new ReportViewModel
+            {
+                ReportType = reportType,
+                FromDate = fromDate,
+                ToDate = toDate
+            };
+
+            if (reportType == "Inward")
+            {
+                var inwardQuery = db.InwardLetters
+                    .Where(l => l.ReceiverDepartment == deptId);
+
+                if (fromDate.HasValue)
+                    inwardQuery = inwardQuery.Where(l => l.DateReceived >= fromDate.Value);
+
+                if (toDate.HasValue)
+                    inwardQuery = inwardQuery.Where(l => l.DateReceived <= toDate.Value);
+
+                model.InwardLetters = inwardQuery
+                    .Select(l => new InwardLetterViewModel
+                    {
+                        InwardNumber = l.InwardNumber,
+                        DateReceived = l.DateReceived,
+                        SenderDepartment = l.SenderDepartment,
+                        SenderName = l.SenderName,
+                        Subject = l.Subject
+                    }).ToList();
+            }
+            else
+            {
+                var outwardQuery = db.OutwardLetters
+            .Where(l => l.DepartmentID == deptId);
+
+                if (fromDate.HasValue)
+                    outwardQuery = outwardQuery.Where(l => l.Date >= fromDate.Value);
+
+                if (toDate.HasValue)
+                    outwardQuery = outwardQuery.Where(l => l.Date <= toDate.Value);
+
+                model.OutwardLetters = outwardQuery
+                    .Select(l => new OutwardLetterReportViewModel // Use the new view model
+                    {
+                        LetterNo = l.LetterNo,
+                        Date = l.Date,
+                        SenderName = l.SenderName,
+                        ReceiverName = l.ReceiverName,
+                        ReceiverDepartment = l.ReceiverDepartment,
+                        Subject = l.Subject
+                    }).ToList();
+            }
+
+            return View(model);
+        }
+
+        public ActionResult DownloadReport(string reportType, DateTime? fromDate, DateTime? toDate)
+        {
+            if (Session["ClerkID"] == null)
+                return RedirectToAction("Login");
+
+            string deptId = Session["DepartmentID"].ToString();
+            string clerkName = Session["ClerkName"].ToString();
+            string departmentName = db.Departments.Where(d => d.DepartmentID == deptId).Select(d => d.DepartmentName).FirstOrDefault();
+
+            // Create PDF
+            using (MemoryStream ms = new MemoryStream())
+            {
+                Document document = new Document(PageSize.A4, 50, 50, 25, 25);
+                PdfWriter writer = PdfWriter.GetInstance(document, ms);
+                document.Open();
+
+                // Add department name and clerk name
+                document.Add(new Paragraph($"Department: {departmentName}"));
+                document.Add(new Paragraph($"Generated By: {clerkName}"));
+                document.Add(new Paragraph(" "));
+
+                // Fetch data based on filters
+                if (reportType == "Inward")
+                {
+                    var inwardQuery = db.InwardLetters
+                        .Where(l => l.ReceiverDepartment == deptId);
+
+                    if (fromDate.HasValue)
+                        inwardQuery = inwardQuery.Where(l => l.DateReceived >= fromDate.Value);
+
+                    if (toDate.HasValue)
+                        inwardQuery = inwardQuery.Where(l => l.DateReceived <= toDate.Value);
+
+                    var inwardLetters = inwardQuery
+                        .Select(l => new // Use anonymous type
+                        {
+                            l.InwardNumber,
+                            l.DateReceived,
+                            l.SenderDepartment,
+                            l.SenderName,
+                            l.Subject
+                        }).ToList();
+
+                    // Create table with 5 columns for Inward
+                    PdfPTable table = new PdfPTable(5);
+                    table.WidthPercentage = 100;
+
+                    // Add headers
+                    table.AddCell("Inward Number");
+                    table.AddCell("Date Received");
+                    table.AddCell("Sender Department");
+                    table.AddCell("Sender Name");
+                    table.AddCell("Subject");
+
+                    // Add rows
+                    foreach (var letter in inwardLetters)
+                    {
+                        table.AddCell(letter.InwardNumber);
+                        table.AddCell(letter.DateReceived?.ToString("dd/MM/yyyy") ?? "");
+                        table.AddCell(letter.SenderDepartment);
+                        table.AddCell(letter.SenderName);
+                        table.AddCell(letter.Subject);
+                    }
+
+                    document.Add(table);
+                }
+                else
+                {
+                    var outwardQuery = db.OutwardLetters
+                        .Where(l => l.DepartmentID == deptId);
+
+                    if (fromDate.HasValue)
+                        outwardQuery = outwardQuery.Where(l => l.Date >= fromDate.Value);
+
+                    if (toDate.HasValue)
+                        outwardQuery = outwardQuery.Where(l => l.Date <= toDate.Value);
+
+                    var outwardLetters = outwardQuery
+                        .Select(l => new // Use anonymous type
+                        {
+                            l.LetterNo,
+                            l.Date,
+                            l.SenderName,
+                            l.ReceiverName,
+                            l.ReceiverDepartment,
+                            l.Subject
+                        }).ToList();
+
+                    // Create table with 6 columns for Outward
+                    PdfPTable table = new PdfPTable(6);
+                    table.WidthPercentage = 100;
+
+                    // Add headers
+                    table.AddCell("Letter No");
+                    table.AddCell("Date");
+                    table.AddCell("Sender Name");
+                    table.AddCell("Receiver Name");
+                    table.AddCell("Receiver Department");
+                    table.AddCell("Subject");
+
+                    // Add rows
+                    foreach (var letter in outwardLetters)
+                    {
+                        table.AddCell(letter.LetterNo);
+                        table.AddCell(letter.Date?.ToString("dd/MM/yyyy") ?? "");
+                        table.AddCell(letter.SenderName);
+                        table.AddCell(letter.ReceiverName);
+                        table.AddCell(letter.ReceiverDepartment);
+                        table.AddCell(letter.Subject);
+                    }
+
+                    document.Add(table);
+                }
+
+                // Add signature at the bottom right
+                Paragraph sign = new Paragraph("Signature: ________________");
+                sign.Alignment = Element.ALIGN_RIGHT;
+                document.Add(sign);
+
+                document.Close();
+
+                return File(ms.ToArray(), "application/pdf", $"{reportType}Report.pdf");
+            }
         }
     }
 }

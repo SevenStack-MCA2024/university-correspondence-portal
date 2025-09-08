@@ -219,7 +219,49 @@ namespace UniversityCorrespondencePortal.Controllers
 
 
 
-        
+
+
+        //public ActionResult InwardLetter()
+        //{
+        //    if (Session["StaffID"] == null)
+        //    {
+        //        return RedirectToAction("Login", "Staff");
+        //    }
+
+        //    int loggedInStaffID = Convert.ToInt32(Session["StaffID"]);
+
+        //    // Get all DepartmentIDs assigned to logged-in staff
+        //    var staffDepartmentIds = db.StaffDepartments
+        //                               .Where(sd => sd.StaffID == loggedInStaffID)
+        //                               .Select(sd => sd.DepartmentID)
+        //                               .ToList();
+
+        //    // Fetch InwardLetters where ReceiverDepartment (which stores DepartmentID) matches any staff's department
+        //    var inwardLetters = db.InwardLetters
+        //                          .Where(il => staffDepartmentIds.Contains(il.ReceiverDepartment))
+        //                          .ToList();
+
+        //    // Map to ViewModel
+        //    var model = inwardLetters.Select(il => new UniversityCorrespondencePortal.Models.ViewModels.InwardLetterViewModel
+        //    {
+        //        LetterID = il.LetterID,
+        //        InwardNumber = il.InwardNumber,
+        //        OutwardNumber = il.OutwardNumber,
+        //        DateReceived = il.DateReceived,
+        //        TimeReceived = il.TimeReceived,
+        //        DeliveryMode = il.DeliveryMode,
+        //        SenderDepartment = il.SenderDepartment,
+        //        SenderName = il.SenderName,
+        //        ReferenceID = il.ReferenceID,
+        //        Subject = il.Subject,
+        //        Remarks = il.Remarks,
+        //        Priority = il.Priority,
+        //        ReceiverDepartment = il.ReceiverDepartment  // This holds DepartmentID
+        //    }).ToList();
+
+        //    return View(model);
+        //}
+
 
         public ActionResult InwardLetter()
         {
@@ -230,18 +272,12 @@ namespace UniversityCorrespondencePortal.Controllers
 
             int loggedInStaffID = Convert.ToInt32(Session["StaffID"]);
 
-            // Get all DepartmentIDs assigned to logged-in staff
-            var staffDepartmentIds = db.StaffDepartments
-                                       .Where(sd => sd.StaffID == loggedInStaffID)
-                                       .Select(sd => sd.DepartmentID)
-                                       .ToList();
-
-            // Fetch InwardLetters where ReceiverDepartment (which stores DepartmentID) matches any staff's department
+            // ✅ Fetch inward letters assigned to the logged-in staff via LetterStaff junction
             var inwardLetters = db.InwardLetters
-                                  .Where(il => staffDepartmentIds.Contains(il.ReceiverDepartment))
+                                  .Where(il => il.LetterStaffs.Any(ls => ls.StaffID == loggedInStaffID))
                                   .ToList();
 
-            // Map to ViewModel
+            // ✅ Map to ViewModel with safe null checks
             var model = inwardLetters.Select(il => new UniversityCorrespondencePortal.Models.ViewModels.InwardLetterViewModel
             {
                 LetterID = il.LetterID,
@@ -250,17 +286,28 @@ namespace UniversityCorrespondencePortal.Controllers
                 DateReceived = il.DateReceived,
                 TimeReceived = il.TimeReceived,
                 DeliveryMode = il.DeliveryMode,
-                SenderDepartment = il.SenderDepartment,
+
+                // Handle Department safely (if string, just use directly; if FK, null-check)
+                SenderDepartment = il.SenderDepartment ?? "-",
+                ReceiverDepartment = il.ReceiverDepartment ?? "-",
+
                 SenderName = il.SenderName,
                 ReferenceID = il.ReferenceID,
                 Subject = il.Subject,
                 Remarks = il.Remarks,
                 Priority = il.Priority,
-                ReceiverDepartment = il.ReceiverDepartment  // This holds DepartmentID
+
+                // ✅ Prevent null Staff crash
+                StaffNames = string.Join(", ",
+                    il.LetterStaffs
+                      .Where(ls => ls.Staff != null) // only valid ones
+                      .Select(ls => ls.Staff.Name))
             }).ToList();
 
             return View(model);
         }
+
+
 
 
         public ActionResult OutwardLetter()

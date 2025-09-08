@@ -49,31 +49,192 @@ namespace UniversityCorrespondencePortal.Controllers
 
 
 
+        // ------------------------Report -------------------------------
+
+
+        //    public ActionResult Report()
+        //    {
+        //        // Total active and deactivated departments
+        //        ViewBag.TotalDepartments = db.Departments.Count();
+        //        ViewBag.ActiveDepartments = db.Departments.Count(d => d.IsActive);
+        //        ViewBag.DeactivatedDepartments = db.Departments.Count(d => !d.IsActive);
+
+        //        // Total active/deactive clerks (assuming Clerk is a role)
+        //        ViewBag.ActiveClerksCount = db.Clerks.Count(u => u.IsActive);
+        //        ViewBag.DeactiveClerksCount = db.Clerks.Count(u => !u.IsActive);
+
+        //        // Total active/deactive staff
+        //        ViewBag.ActiveStaffCount = db.Staffs.Count(u => u.IsActive);
+        //        ViewBag.DeactiveStaffCount = db.Staffs.Count(u => !u.IsActive);
+
+        //        // Total inward and outward letters
+        //        ViewBag.TotalInwardLetters = db.InwardLetters.Count();
+        //        ViewBag.TotalOutwardLetters = db.OutwardLetters.Count();
+
+        //        // Total inward and outward by department
+        //        ViewBag.InwardByDepartment = db.InwardLetters
+        //            .GroupBy(i => i.ReceiverDepartment)
+        //            .Select(g => new { Department = g.Key, Count = g.Count() })
+        //            .ToList();
+
+        //        ViewBag.OutwardByDepartment = db.OutwardLetters
+        //            .GroupBy(o => o.Department.DepartmentName)
+        //            .Select(g => new { Department = g.Key, Count = g.Count() })
+        //            .ToList();
+
+        //        // Month-wise count of inward and outward letters
+        //        var currentYear = DateTime.Now.Year;
+
+        //        ViewBag.MonthlyInward = db.InwardLetters
+        //.Where(i => i.DateReceived.HasValue && i.DateReceived.Value.Year == currentYear)
+        //.GroupBy(i => i.DateReceived.Value.Month)
+        //.Select(g => new { Month = g.Key, Count = g.Count() })
+        //.OrderBy(g => g.Month)
+        //.ToList();
+
+        //        ViewBag.MonthlyOutward = db.OutwardLetters
+        //.Where(o => o.Date.HasValue && o.Date.Value.Year == currentYear)
+        //.GroupBy(o => o.Date.Value.Month)
+        //.Select(g => new { Month = g.Key, Count = g.Count() })
+        //.OrderBy(g => g.Month)
+        //.ToList();
+
+        //        // Recent activity (both inward and outward)
+        //        var recentInward = db.InwardLetters
+        //            .Where(i => i.DateReceived.HasValue)
+        //.OrderByDescending(i => i.DateReceived.Value)
+        //            .Take(10)
+        //            .Select(i => new
+        //            {
+        //                LetterNumber = i.InwardNumber,
+        //                Type = "Inward",
+        //                Subject = i.Subject,
+        //                Department = i.SenderDepartment,
+        //                Date = i.DateReceived,
+        //                Status = "Received",
+        //                StatusClass = "success"
+        //            }).ToList();
+
+
+
+
+
+        //        var recentOutward = db.OutwardLetters
+        //            .OrderByDescending(o => o.Date)
+        //            .Take(10)
+        //            .Select(o => new
+        //            {
+        //                LetterNumber = o.OutwardNumber,
+        //                Type = "Outward",
+        //                Subject = o.Subject,
+        //                Department = o.Department.DepartmentName,
+        //                Date = o.Date,
+        //                Status = "Dispatched",
+        //                StatusClass = "info"
+        //            }).ToList();
+
+        //        var recentLetters = recentInward.Concat(recentOutward)
+        //            .OrderByDescending(l => l.Date)
+        //            .Take(10)
+        //            .ToList();
+
+        //        ViewBag.RecentLetters = recentLetters;
+
+        //        return View();
+        //    }
+
 
 
 
         public ActionResult Report()
         {
+            // Total active and deactivated departments
+            ViewBag.TotalDepartments = db.Departments.Count();
+            ViewBag.ActiveDepartments = db.Departments.Count(d => d.IsActive);
+            ViewBag.DeactivatedDepartments = db.Departments.Count(d => !d.IsActive);
+
+            // Clerks
+            ViewBag.ActiveClerksCount = db.Clerks.Count(u => u.IsActive);
+            ViewBag.DeactiveClerksCount = db.Clerks.Count(u => !u.IsActive);
+
+            // Staff
+            ViewBag.ActiveStaffCount = db.Staffs.Count(u => u.IsActive);
+            ViewBag.DeactiveStaffCount = db.Staffs.Count(u => !u.IsActive);
+
+            // Letters
+            ViewBag.TotalInwardLetters = db.InwardLetters.Count();
+            ViewBag.TotalOutwardLetters = db.OutwardLetters.Count();
+
+            // Group by Department (Receiver side for Inward)
+            ViewBag.InwardByDepartment = db.InwardLetters
+                .Where(i => i.ReceiverDepartment != null)
+                .GroupBy(i => i.ReceiverDepartment.ToString())
+                .Select(g => new { Department = g.Key, Count = g.Count() })
+                .ToList();
+
+            ViewBag.OutwardByDepartment = db.OutwardLetters
+                .Where(o => o.Department != null)
+                .GroupBy(o => o.Department.DepartmentName)
+                .Select(g => new { Department = g.Key, Count = g.Count() })
+                .ToList();
+
+            // Month-wise
+            var currentYear = DateTime.Now.Year;
+
+            ViewBag.MonthlyInward = db.InwardLetters
+                .Where(i => i.DateReceived.HasValue && i.DateReceived.Value.Year == currentYear)
+                .GroupBy(i => i.DateReceived.Value.Month)
+                .Select(g => new { Month = g.Key, Count = g.Count() })
+                .OrderBy(g => g.Month)
+                .ToList();
+
+            ViewBag.MonthlyOutward = db.OutwardLetters
+                .Where(o => o.Date.HasValue && o.Date.Value.Year == currentYear)
+                .GroupBy(o => o.Date.Value.Month)
+                .Select(g => new { Month = g.Key, Count = g.Count() })
+                .OrderBy(g => g.Month)
+                .ToList();
+
+            // Recent activity
             var recentInward = db.InwardLetters
+                .Where(i => i.DateReceived.HasValue)
+                .OrderByDescending(i => i.DateReceived.Value)
                 .Take(10)
-                .ToList()
                 .Select(i => new
                 {
                     LetterNumber = i.InwardNumber,
                     Type = "Inward",
                     Subject = i.Subject,
+                    Department = i.SenderDepartment != null ? i.SenderDepartment.ToString() : "N/A",
+                    Date = i.DateReceived,
                     Status = "Received",
                     StatusClass = "success"
-                });
+                }).ToList();
 
-            
+            var recentOutward = db.OutwardLetters
+                .Where(o => o.Date.HasValue)
+                .OrderByDescending(o => o.Date.Value)
+                .Take(10)
+                .Select(o => new
+                {
+                    LetterNumber = o.OutwardNumber,
+                    Type = "Outward",
+                    Subject = o.Subject,
+                    Department = o.Department != null ? o.Department.DepartmentName : "N/A",
+                    Date = o.Date,
+                    Status = "Dispatched",
+                    StatusClass = "info"
+                }).ToList();
+
+            var recentLetters = recentInward.Concat(recentOutward)
+                .OrderByDescending(l => l.Date)
+                .Take(10)
+                .ToList();
+
+            ViewBag.RecentLetters = recentLetters;
 
             return View();
         }
-
-
-
-
 
 
 
