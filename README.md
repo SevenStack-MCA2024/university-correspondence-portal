@@ -1,146 +1,146 @@
+# 📚 University Correspondence Portal  
 
-University Correspondence Portal
+**Authors:** Rohit Mahajan & Vishal Sonone  
 
-Author: Rohit Mahajan and Vishal Sonone
+A **web-based correspondence management system** for universities, built with **ASP.NET MVC (.NET Framework 4.7.2)** and **SQL Server**.  
+The portal supports **role-based access (Admin, Clerk, Staff)**, **inward/outward letter management**, **reporting**, **staff assignment**, and **email notifications**.  
 
-Project Overview
+---
 
-University Correspondence Portal is a web-based system built with .NET Framework 4.7.2 (ASP.NET MVC) and SQL Server to manage inward and outward correspondence for a university. The portal supports role-based access (Admin, Clerk, Staff), many-to-many staff assignment for letters, reporting, and email notifications.
+## 🚀 Project Overview  
 
-Key Features
+- Manage **Inward & Outward Letters** with full CRUD operations.  
+- **Role-based Access Control** → Admin, Clerk, Staff.  
+- **Many-to-many staff assignment** for inward letters via a `LetterStaff` junction table.  
+- **Department & Staff Management** (with `IsActive` flag).  
+- **Modal Popup Forms** for create/edit/view operations.  
+- **Outward Letter Number Tracking** via `OutwardLetterSerialTracker`.  
+- **Email Notifications** on outward letter creation.  
+- **Advanced Filters & Search** for letter listings.  
+- **Staff-specific Letter View** (only see assigned/sent letters).  
+- **Reports & Analytics** with filtering and export capability.  
+- **Bulk Test Data Generation** for departments, staff, and letters.  
 
-Manage Inward and Outward letters with full CRUD operations.
+---
 
-Role-based access control: Admin, Clerk, Staff — each role has relevant views and permissions.
+## 🖥️ UI Design Overview  
 
-Many-to-many assignment of staff to incoming letters using a LetterStaff (junction) table; aggregated display of StaffNames in views.
+The portal follows a **clean, modern UI design** with:  
 
-Department and Staff management (including IsActive flag for staff).
+- 🎨 **Bootstrap + jQuery** for responsive UI.  
+- 📋 **Tables with search & filters** (From Date, To Date, Priority, Departments, etc.).  
+- 🪟 **Popup Modals** for **Add/Edit/View** (instead of redirect pages).  
+- ✅ **Buttons & Badges** for quick actions (Active/Inactive, Priority, Delivery Mode).  
+- 📊 **Report Page** (`Report.cshtml`) with statistics, charts, and staff-wise analytics.  
+- 🔎 **Staff Panel Letters** (`Letter.cshtml`) showing inward + outward letters with filters.  
 
-Modal forms for Create/Edit/View operations across letters and staff; many modals are popup-styled.
+### Example UI Elements  
 
-Outward letter number generation with tracking using OutwardLetterSerialTracker. On create, the previous tracker entry is deleted and replaced with the new tracker row to update serials.
+| Feature | UI Design |
+|---------|-----------|
+| **Inward/Outward Letter List** | Paginated table with search, filter panel, action buttons (View/Edit). |
+| **Letter Modals** | Popup modal forms with dropdowns (Department, Staff, DeliveryMode, Priority). |
+| **Staff Management** | Table with `IsActive` column + buttons to toggle Active/Inactive. |
+| **Reports Page** | Tabular stats + charts (future enhancement with exports). |
+| **Filters** | Apply & Clear buttons, dropdowns, and date pickers for range filters. |
 
-Email notifications: Outward letter creation triggers emails to receiver staff.
+---
 
-Advanced filters & search on letter listing pages (FromDate, ToDate, Sender/Receiver Department, DeliveryMode, Priority, etc.) with Apply / Clear controls.
+## 🗄️ Database / Models  
 
-Staff-level letter view: staff see only letters assigned to them (Inward via LetterStaff) or sent by them (Outward via OutwardLetter.StaffID).
+### Key Entities  
 
-Reports page (Report.cshtml) for statistics, data analysis, and staff-assigned letter reporting.
+- **Department** → `DepartmentID (PK)`, Name.  
+- **Staff** → `StaffID (PK)`, Name, Contact, `IsActive`.  
+- **InwardLetter** → InwardNumber, OutwardNumber, DeliveryMode, Sender/Receiver Dept, Priority, ReceivedDate.  
+- **OutwardLetter** → OutwardNumber, ReceiverDept, DeliveryMode, Priority, `StaffID (FK)` (sender).  
+- **LetterStaff** → Junction table for many-to-many relation (InwardLetter ↔ Staff).  
+- **OutwardLetterSerialTracker** → Maintains last generated serial.  
 
-Test data generation capability to insert large volumes of test rows for tables like InwardLetter, OutwardLetter, Staff, Department, LetterStaff, etc.
+---
 
-Database / Models (summary)
+## 📂 Suggested Folder Structure  
 
-Important domain entities and relationships (high-level):
+/Controllers
+ClerkController.cs
+StaffController.cs
+AdminController.cs
+LetterController.cs
 
-Department (PK: DepartmentID)
+/Models
+InwardLetter.cs
+OutwardLetter.cs
+Staff.cs
+Department.cs
+LetterStaff.cs
+OutwardLetterSerialTracker.cs
 
-Staff (PK: StaffID) — fields include Name, IsActive, contact details, and navigation properties to letters/departments.
+/Views
+/InwardLetter
+/OutwardLetter
+/Staff
+/Report
 
-InwardLetter — fields: InwardNumber, OutwardNumber (if any), DeliveryMode, SenderName, SenderDepartment, ReceiverDepartment, Priority, ReceivedDate, and others. Assigned staff are linked via LetterStaff.
+/Scripts
+filters.js
+modals.js
+datepickers.js
 
-OutwardLetter — fields: OutwardNumber, ReceiverDepartment, DeliveryMode, Priority, StaffID (sender), etc. Sender name is obtained via OutwardLetter.Staff.Name.
+/Database
+seed.sql
+migrations/
 
-LetterStaff (junction) — many-to-many between InwardLetter and Staff.
 
-OutwardLetterSerialTracker — keeps the latest serial; on creation the previous entry is deleted and the new one inserted.
 
-Note: Views and controller logic were updated to aggregate assigned staff into a StaffNames string using LINQ queries over LetterStaffs.
+## ⚙️ Setup & Installation  
 
-Important Views / UI Notes
+### ✅ Prerequisites  
+- Windows OS  
+- Visual Studio 2019 / 2022 (ASP.NET workload)  
+- SQL Server (Express or Full)  
+- SMTP server (for email notifications)  
 
-InwardLetter and OutwardLetter pages use modal popup forms for Add/Edit/View. The InwardLetter modal includes department and staff dropdowns (with an Other option to allow custom input) and support for selecting multiple staff.
+### 🛠️ Database Setup  
+1. Create a new DB → `UniversityCorrespondencePortalDb`.  
+2. Run EF migrations OR import provided schema (`/Database/seed.sql`).  
+3. Insert test data using **insert scripts** or generator module.  
 
-Staff.cshtml displays IsActive column and action buttons to set Active/Inactive (instead of an editable Status). The Status filter should not affect the search/display logic (filter UI only).
+### 🔧 Configuration  
+- Update **connection string** in `web.config`:  
+  ```xml
+  <connectionStrings>
+    <add name="DefaultConnection" connectionString="Data Source=.;Initial Catalog=UniversityCorrespondencePortalDb;Integrated Security=True;" providerName="System.Data.SqlClient" />
+  </connectionStrings>
+Add SMTP settings for email sending.
 
-Letter.cshtml (Staff panel) shows both inward and outward letters filtered for the logged-in staff (assigned or sender). The table supports search and filters (SenderDepartment, ReceiverDepartment, FromDate, ToDate, Priority) with Apply/Clear.
+▶️ Run
+Open solution in Visual Studio.
 
-Controllers / Important Actions (high level)
+Build & run.
 
-ClerkController (or relevant clerk-facing controllers):
+Login with seeded Admin/Clerk/Staff accounts.
 
-Logic was updated to fetch assigned staff via LetterStaffs and aggregate names into a StaffNames string using LINQ.
+📊 Reporting & Analytics
+Staff-wise assigned letters
 
-Provides GetOutwardLetter action to fetch outward letter details for modal viewing.
+Filters by Department, Priority, Date Range
 
-Create/Edit actions for OutwardLetter ensure outward numbers are generated and stored both in OutwardLetter and OutwardLetterSerialTracker.
+Charts & Export (CSV/PDF planned)
 
-Setup & Installation (local development)
+Future Enhancements: Scheduled email reports
 
-Prerequisites
+📝 Known Design Decisions
+StaffNames aggregated into single string (via LINQ).
 
-Windows OS (recommended) or any environment that can run .NET Framework 4.7.2 apps.
+New staff default → IsActive = true.
 
-Visual Studio 2019 / 2022 (with ASP.NET workload)
+Status filter is UI-only (does not affect core logic unless applied).
 
-SQL Server (Express or full)
+🛠️ TODO / Enhancements
+✅ Add unit & integration tests
 
-SMTP details for sending emails (or use a local SMTP server for development)
+📈 Enhance reporting with charts & exports
 
-Database
+✉️ Add scheduled report emails
 
-Create a new SQL Server database (e.g., UniversityCorrespondencePortalDb).
-
-Run EF migrations or execute the provided SQL schema (if included in Database folder).
-
-If you prefer test data, use the provided insert scripts (or the test data generator module) to populate Staff, Department, InwardLetter, OutwardLetter, LetterStaff, etc.
-
-Configuration
-
-Update web.config connection string under ConnectionStrings:DefaultConnection to point to your SQL Server database.
-
-Set SMTP settings in web.config or a secure secrets mechanism for email notifications.
-
-Run
-
-Open solution in Visual Studio, build, and run.
-
-Login using seeded admin/clerk/staff accounts (or create new users via the Admin panel).
-
-Suggested Folder Structure
-
-/Controllers — ClerkController, StaffController, AdminController, LetterController, etc.
-
-/Models — InwardLetter, OutwardLetter, Staff, Department, LetterStaff, OutwardLetterSerialTracker, etc.
-
-/Views — InwardLetter, OutwardLetter, Staff, Report folders with corresponding .cshtml files.
-
-/Scripts — JS for modal handling, date pickers, and filter logic.
-
-/Migrations or /Database — EF migrations or SQL schema + seed/test data scripts.
-
-Test Data & Sample SQL Inserts
-
-This repository includes (or should include) a Database/seed.sql file with full INSERT statements aligned to the EF model naming conventions. If you want, I can generate bulk insert scripts for the following tables:
-
-Department (sample departments)
-
-Staff (sample staff with IsActive = true for newly created staff)
-
-InwardLetter / OutwardLetter (realistic sample rows)
-
-LetterStaff (assignments linking staff to inward letters)
-
-Reporting & Analytics
-
-Report.cshtml (Staff panel) offers statistics and reporting related to staff-assigned letters. It can be extended to export CSV/PDF and visual dashboards.
-
-Known Implementation Details / Design Decisions
-
-StaffNames: For quick display in lists and modals, assigned staff names are aggregated into a single StaffNames string using LINQ over the LetterStaff junction table.
-
-IsActive default: New staff entries should default to IsActive = true.
-
-Status filter design: Status filter is purely a UI control and should not alter core search logic unless explicitly applied.
-
-TODO / Enhancements
-
-Add unit tests for controllers and services.
-
-Add integration tests for email sending (with mock SMTP) and outward number generation.
-
-Improve reporting — add charts, export features, and scheduled report emails.
-
-Add role-based login seeders and a simple admin onboarding guide.
+👤 Role-based login seeders for quick onboarding
